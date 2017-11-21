@@ -1,4 +1,5 @@
 #include "PerThreadMgr.hh"
+#include "TaskGroup.hh"
 #include "Task.hh"
 
 #include <iostream>
@@ -18,6 +19,10 @@ void callback() {
             });
 
     globalTaskMgr.addRunnable(t3);
+
+    TaskGroup gp;
+    gp.registe(t3);
+    gp.wait();
 
     std::cout << "about to yield 2\n";
     co_yield;
@@ -42,7 +47,7 @@ void test() {
 
 
     globalTaskMgr.addRunnable(t);
-    globalTaskMgr.addRunnable(t2);
+//    globalTaskMgr.addRunnable(t2);
 
     globalTaskMgr.debug_run();
 }

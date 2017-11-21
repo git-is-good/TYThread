@@ -1,5 +1,5 @@
-#ifndef _GLOBALSCHEDULER_HH_
-#define _GLOBALSCHEDULER_HH_
+#ifndef _GLOBALMEDIATOR_HH_
+#define _GLOBALMEDIATOR_HH_
 
 #include "util.hh"
 #include "forward_decl.hh"
@@ -9,9 +9,9 @@
 #include <memory>
 #include <atomic>
 
-class GlobalScheduler : public Singleton {
+class GlobalMediator : public Singleton {
 public:
-    void addToRunnableQueue(TaskPtr ptr);
+    void addRunnable(TaskPtr ptr);
     void run();
 
     TaskPtr currentTask() {
@@ -22,8 +22,8 @@ private:
     static PerThreadMgr *getThisPerThreadMgr() {
         return pmgrs[thread_id].get();
     }
-    static GlobalScheduler &Instance() {
-        static GlobalScheduler g;
+    static GlobalMediator &Instance() {
+        static GlobalMediator g;
         return g;
     }
     static thread_local int thread_id;
@@ -35,5 +35,4 @@ private:
     std::vector<std::unique_ptr<PerThreadMgr>> pmgrs;
 };
 
-#endif /* _GLOBALSCHEDULER_HH_ */
-
+#endif /* _GLOBALMEDIATOR_HH_ */

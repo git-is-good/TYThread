@@ -62,7 +62,6 @@
 #include "Task.hh"
 #include "debug.hh"
 #include "TaskGroup.hh"
-//#include "GlobalScheduler.hh"
 
 #ifdef _UNIT_TEST_TASK_
 
@@ -140,10 +139,10 @@ Task::continuationIn()
                 saved_continuation = std::move(cont);
                 try {
                     callback();
-                    state = Task::Terminated;
+                    terminate();
                 } catch ( std::exception const &e ) {
                     // TODO: add exception handling
-                    state = Task::Terminated;
+                    terminate();
                 }
                 return std::move(saved_continuation);
             });
