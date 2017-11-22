@@ -82,13 +82,12 @@ public:
     continuation_t          task_continuation;
 
     /* this vector will be accessed concurrently */
+    TaskGroup               *blockedBy = nullptr;
     std::vector<TaskGroup*> groups;
     std::mutex              mut_;
 
     int debugId;
     static std::atomic<int> debugId_counter;
-
-    std::atomic<bool>       proccessedAfterYield{false};
 };
 
 #define co_yield Task::continuationOut()

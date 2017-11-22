@@ -12,9 +12,6 @@
 #include <thread>
 #include <chrono>
 
-// a TaskGroup can hold a Task, only if wait() is called,
-// until the moment when wait() yields, proccessedAfterYield
-// is always false; thus prevents other threads informDone it up
 void
 TaskGroup::wait()
 {
@@ -25,8 +22,8 @@ TaskGroup::wait()
         if ( isRealWait ) {
             DEBUG_PRINT(DEBUG_TaskGroup, "task %d starts GroupWait at TaskGroup %d",
                     co_currentTask->debugId, debugId);
-            blockedTask = co_currentTask;
             co_currentTask->state = Task::GroupWait;
+            co_currentTask->blockedBy = this;
         } else {
             DEBUG_PRINT(DEBUG_TaskGroup, "TaskGroup nothing to wait");
         }
@@ -69,14 +66,6 @@ TaskGroup::informDone(TaskPtr ptr)
     }
 
     if ( nowCanRun ) {
-        while ( !nowCanRun->proccessedAfterYield ) {
-            DEBUG_PRINT(DEBUG_TaskGroup,
-                    "rare but ok: task %d woken up at Thread %d from GroupWait before proccessedAfterYield",
-                    nowCanRun->debugId, debugId);
-            std::this_thread::sleep_for(
-                    std::chrono::milliseconds(Config::Instance().continuation_ret_conflict_period));
-
-        }
         nowCanRun->state = Task::Runnable;
         DEBUG_PRINT(DEBUG_TaskGroup,
                 "informDone causes task %d blocked by %d runnable", nowCanRun->debugId, debugId);

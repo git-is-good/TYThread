@@ -145,7 +145,6 @@ Task::continuationIn()
 {
     DEBUG_PRINT(DEBUG_Task, "Thread %d: Task %d continuationIn with state %s...",
             globalMediator.thread_id, debugId, getStateName(state));
-    proccessedAfterYield = false;
     if ( state == Task::Runnable ) {
         MUST_TRUE(task_continuation, "task: %d", co_currentTask->debugId);
         task_continuation = task_continuation.resume();

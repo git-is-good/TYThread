@@ -1,9 +1,11 @@
 #include "Task.hh"
 #include "GlobalMediator.hh"
 #include "PerThreadMgr.hh"
+#include "TaskGroup.hh"
 #include "debug.hh"
 #include "Config.hh"
 
+#include <mutex>
 #include <chrono>
 
 #ifdef _UNIT_TEST_PER_THREAD_MGR_
@@ -22,8 +24,6 @@ PerThreadMgr::run_runnable()
 
         MUST_TRUE(ptr != nullptr, "PerThreadMgr: %d", debugId);
         currentTask__ = ptr;
-        DEBUG_PRINT(DEBUG_PerThreadMgr,
-                "PerThreadMgr %d: task %d about to continuationIn @%p...", debugId, ptr->debugId, ptr.get());
 
         //TODO: race-condition: when continuationOut with
         // state GroupWait, another thread can wake it up
@@ -31,22 +31,30 @@ PerThreadMgr::run_runnable()
         // this Task being enqueueed 2 times
         //Done
         ptr->continuationIn();
+        currentTask__ = nullptr;
 
-        MUST_TRUE(ptr->proccessedAfterYield == false,
-                "task %d proccessedAfterYield corrupted", ptr->debugId);
-        
         switch ( ptr->state ) {
         case Task::Runnable:
             runnable_queue.enqueue(ptr);
             break;
         case Task::MPIBlocked:
             mpi_blocked_queue.push_back(ptr);
-            currentTask__ = nullptr;
+            break;
+        case Task::GroupWait:
+            {
+                std::lock_guard<std::mutex> _(ptr->blockedBy->mut_);
+
+                if ( ptr->blockedBy->isWaitingListAreadyEmpty_locked() ) {
+                    ptr->state = Task::Runnable;
+                    runnable_queue.enqueue(ptr);
+                } else {
+                    ptr->blockedBy->blockedTask = ptr;
+                }
+            }
             break;
         default:
-            currentTask__ = nullptr;
+            ;
         }
-        ptr->proccessedAfterYield = true;
         return true;
     } else {
         DEBUG_PRINT(DEBUG_PerThreadMgr,
