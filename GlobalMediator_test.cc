@@ -12,6 +12,7 @@ constexpr int matsz = 10000;
 constexpr int num_of_tasks = 250;
 constexpr int chunk = matsz / num_of_tasks;
 
+/* compute res = mat * x with automatic task dispatching */
 void co_main2() {
     std::vector<int> mat(matsz * matsz);
     std::vector<int> x(matsz);
@@ -65,8 +66,8 @@ void co_main1(int s) {
 }
 
 void co_main_() {
-    //for ( int i = 0; i < 1000000; i++ ) co_main1(i);
-    co_main2();
+    for ( int i = 0; i < 1000000; i++ ) co_main1(i);
+    //co_main2();
     globalMediator.TerminateGracefully();
 }
 

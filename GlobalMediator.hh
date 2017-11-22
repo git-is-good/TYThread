@@ -51,5 +51,6 @@ public:
 #define co_currentTask      globalMediator.getThisPerThreadMgr()->currentTask__
 #define co_globalWaitMut    globalMediator.globalWaitMut_
 #define co_globalWaitCond   globalMediator.globalWaitCond_
+#define co_yield            co_currentTask->continuationOut() 
 
 #endif /* _GLOBALMEDIATOR_HH_ */

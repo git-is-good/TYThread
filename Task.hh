@@ -68,7 +68,7 @@ public:
     void removeFromGroup(TaskGroup *gp);
     void terminate();
     void continuationIn();
-    static void continuationOut();
+    void continuationOut();
 
 //private:
     bool isFini() const {
@@ -89,8 +89,6 @@ public:
     int debugId;
     static std::atomic<int> debugId_counter;
 };
-
-#define co_yield Task::continuationOut()
 
 #endif /* _TASK_HH_ */
 

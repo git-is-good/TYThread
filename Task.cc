@@ -83,11 +83,10 @@ Task::~Task()
 void
 Task::continuationOut()
 {
-    auto ptr = co_currentTask;
-    MUST_TRUE(ptr->saved_continuation, "task: %d", ptr->debugId);
+    MUST_TRUE(saved_continuation, "task: %d", debugId);
     DEBUG_PRINT(DEBUG_Task, "Thread %d: Task %d continuationOut", 
-            globalMediator.thread_id, ptr->debugId);
-    ptr->saved_continuation = ptr->saved_continuation.resume();
+            globalMediator.thread_id, debugId);
+    saved_continuation = saved_continuation.resume();
 }
 
 void
