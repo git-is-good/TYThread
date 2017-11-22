@@ -8,17 +8,43 @@
 #include <thread>
 #include <chrono>
 
-const int matsz = 10000;
+constexpr int matsz = 10000;
+constexpr int num_of_tasks = 250;
+constexpr int chunk = matsz / num_of_tasks;
 
 void co_main2() {
-    std::vector<int> mat(matsz);
+    std::vector<int> mat(matsz * matsz);
+    std::vector<int> x(matsz);
+    std::vector<int> res(matsz);
 
+    for ( int i = 0; i < matsz; i++ ) {
+        mat[i * matsz + i] = 2;
+        x[i] = i;
+    }
 
-    
-    
+    int *mat_ = &mat[0], *x_ = &x[0], *res_ = &res[0];
 
+    TaskGroup group;
+    for ( int i = 0; i < num_of_tasks; ++i ) {
+        TaskPtr ptr = std::make_shared<Task>(
+            [i, mat_, x_, res_] () -> void {
+                for ( int j = 0; j < chunk; ++j ) {
+                    res_[chunk * i + j] = 0;
+                    for ( int k = 0; k < matsz; ++k ) {
+                        res_[chunk * i + j] += mat_[(chunk * i + j) * matsz + k] * x_[k];
+                    }
+                }
+            });
+        globalMediator.addRunnable(ptr);
+        group.registe(ptr);
+    }
 
+    group.wait();
 
+    for ( int i = 0; i < matsz; i++ ) {
+        printf("%d ", res[i]);
+    }
+    printf("\n");
 }
 
 void co_main1(int s) {
@@ -39,7 +65,8 @@ void co_main1(int s) {
 }
 
 void co_main_() {
-    for ( int i = 0; i < 1000000; i++ ) co_main1(i);
+    //for ( int i = 0; i < 1000000; i++ ) co_main1(i);
+    co_main2();
     globalMediator.TerminateGracefully();
 }
 
