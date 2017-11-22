@@ -41,14 +41,29 @@ PerThreadMgr::run_runnable()
             mpi_blocked_queue.push_back(ptr);
             break;
         case Task::GroupWait:
+            DEBUG_PRINT(DEBUG_TaskGroup,
+                    "Task %d continuationOut with GroupWait at TaskGroup %d",
+                    ptr->debugId, ptr->blockedBy->debugId);
             {
-                std::lock_guard<std::mutex> _(ptr->blockedBy->mut_);
+                bool isRunnable = false;
+                {
+                    std::lock_guard<std::mutex> _(ptr->blockedBy->mut_);
 
-                if ( ptr->blockedBy->isWaitingListAreadyEmpty_locked() ) {
-                    ptr->state = Task::Runnable;
+                    if ( ptr->blockedBy->isWaitingListAreadyEmpty_locked() ) {
+                        ptr->state = Task::Runnable;
+                        isRunnable = true;
+                        //TODO: race-condition: when ptr is put to runnable_queue,
+                        // it might be immediately running in another thread because of
+                        // work stealing, then the TaskGroup can be destroyed *before*
+                        // the end of this scope, leading mut_ invalid
+                        //Done
+                        //runnable_queue.enqueue(ptr);
+                    } else {
+                        ptr->blockedBy->blockedTask = ptr;
+                    }
+                }
+                if ( isRunnable ) {
                     runnable_queue.enqueue(ptr);
-                } else {
-                    ptr->blockedBy->blockedTask = ptr;
                 }
             }
             break;

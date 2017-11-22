@@ -87,6 +87,10 @@ TaskGroup::informDone(TaskPtr ptr)
 TaskGroup::~TaskGroup()
 {
     DEBUG_PRINT(DEBUG_TaskGroup, "TaskGroup %d destroying...", debugId);
+
+    // defensive
+    MUST_TRUE(blockedTask == nullptr,
+            "TaskGroup %d blockedTask should be nullptr when TaskGroup is under destruction", debugId);
     for ( auto & ptr : taskPtrs ) {
         ptr->removeFromGroup(this);
     }

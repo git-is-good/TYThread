@@ -49,19 +49,52 @@ void co_main2() {
 }
 
 void co_main1(int s) {
-    printf("co_main1 in %d...\n", s);
+//    printf("co_main1 in %d...\n", s);
+
+    std::vector<TaskPtr> someTasks;
 
     TaskGroup group;
     for ( int i = 0; i < 5; i++ ) {
         TaskPtr ptr = std::make_shared<Task>(
                     [i] () -> void {
-                        printf("running i = %d\n", i);
+    //                    printf("running i = %d\n", i);
                     }
                 );
+        if ( i < 3 ) {
+            someTasks.push_back(ptr);
+        }
+
         globalMediator.addRunnable(ptr);
         group.registe(ptr);
     }
 
+    /* A pitfall in shared-stack: if one coroutine creates a local var v, and spawn a new coroutine
+     * with v captured. It is ok syntactically, but when the child coroutine is running, the 
+     * parent's stack was cleanup to place the child, thus child holds a wrong pointer
+     */
+    globalMediator.addRunnable(
+            std::make_shared<Task>(
+                // some tasks are waited by multiple groups
+                // must catch by value, because the outer scope might
+                // terminate sooner than the inner task
+                [someTasks] () -> void {
+                    TaskGroup group_;
+                    for ( auto &ptr : someTasks ) {
+                        group_.registe(ptr);
+                    }
+
+                    for ( int k = 0; k < 4; ++k ) {
+                        TaskPtr ptr = std::make_shared<Task>(
+                                [k] () -> void {
+    //                                printf("inner running: k = %d\n", k);
+                                });
+                        group_.registe(ptr);
+                        globalMediator.addRunnable(ptr);
+                    }
+    //                printf("Bonjour... Start waiting\n");
+                    group_.wait();
+    //                printf("Au revoir\n");
+            }));
     group.wait();
 }
 

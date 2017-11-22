@@ -12,8 +12,9 @@ enum {
     DEBUG_Blockings         = (1 << 4),
 };
 
-#define current_debeg_setting (DEBUG_Task | DEBUG_TaskGroup | DEBUG_PerThreadMgr | DEBUG_GlobalMediator) 
-//#define current_debeg_setting 0
+//#define current_debeg_setting (DEBUG_Task | DEBUG_TaskGroup | DEBUG_PerThreadMgr | DEBUG_GlobalMediator) 
+#define current_debeg_setting 0
+//#define current_debeg_setting (DEBUG_TaskGroup)
 //#define current_debeg_setting (DEBUG_Task | DEBUG_TaskGroup | DEBUG_GlobalMediator | DEBUG_Blockings)
 //#define current_debeg_setting DEBUG_GlobalMediator
 
