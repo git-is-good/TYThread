@@ -18,10 +18,16 @@ void callback() {
                 }
             });
 
+    TaskPtr t4 = std::make_shared<Task>(
+            [] () -> void {
+                std::cout << "t4 run and return\n";
+            });
+
     globalTaskMgr.addRunnable(t3);
+    globalTaskMgr.addRunnable(t4);
 
     TaskGroup gp;
-    gp.registe(t3);
+    gp.registe(t3).registe(t4);
     gp.wait();
 
     std::cout << "about to yield 2\n";
@@ -53,6 +59,7 @@ void test() {
 }
 
 int main() {
+//    for ( int i = 0; i < 100000000; i++ )    test();
     test();
     std::cout << "ok...\n";
 }

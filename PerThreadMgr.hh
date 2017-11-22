@@ -36,12 +36,13 @@ public:
 
     /* for debug */
     TaskPtr currentTask() { return currentTask__; }
-private:
+//private:
     BlockingQueue<TaskPtr>  runnable_queue;
 
     std::vector<TaskPtr>    mpi_blocked_queue;
 
     TaskPtr                 currentTask__ = nullptr;
+    int                     debugId;
 };
 
 #ifdef _UNIT_TEST_PER_THREAD_MGR_

@@ -1,6 +1,8 @@
 #ifndef _UTIL_HH_
 #define _UTIL_HH_
 
+#define FOR_N_TIMES(n) for ( int _M_G_C_X_C8377 = 0; _M_G_C_X_C8377 < (n); ++_M_G_C_X_C8377 )
+
 struct NonCopyable {
     using self_type = NonCopyable;
 

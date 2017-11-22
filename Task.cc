@@ -55,13 +55,16 @@
  *              
  */
 
+#include "GlobalMediator.hh"
+#include "Task.hh"
+#include "debug.hh"
+#include "TaskGroup.hh"
+
+#include <mutex>
 #include <array>
 #include <vector>
 #include <algorithm>
 #include <boost/context/all.hpp>
-#include "Task.hh"
-#include "debug.hh"
-#include "TaskGroup.hh"
 
 #ifdef _UNIT_TEST_TASK_
 
@@ -81,20 +84,24 @@ void
 Task::continuationOut()
 {
     auto ptr = co_currentTask;
+    MUST_TRUE(ptr->saved_continuation, "task: %d", ptr->debugId);
+    DEBUG_PRINT(DEBUG_Task, "Thread %d: Task %d continuationOut", 
+            globalMediator.thread_id, ptr->debugId);
     ptr->saved_continuation = ptr->saved_continuation.resume();
 }
 
 void
-Task::addToGroup(TaskGroup *gp)
+Task::addToGroup_locked(TaskGroup *gp)
 {
-    DEBUG_PRINT(DEBUG_Task, "Task %d addToGroup...", debugId);
+    DEBUG_PRINT(DEBUG_Task, "Task %d addToGroup %d...", debugId, gp->debugId);
     groups.push_back(gp);
 }
 
 void
 Task::removeFromGroup(TaskGroup *gp)
 {
-    DEBUG_PRINT(DEBUG_Task, "Task %d removeFromGroup...", debugId);
+    std::lock_guard<std::mutex> _(mut_);
+    DEBUG_PRINT(DEBUG_Task, "Task %d removeFromGroup %d...", debugId, gp->debugId);
     auto iter = std::find(groups.begin(), groups.end(), gp);
     groups.erase(iter);
 }
@@ -102,8 +109,15 @@ Task::removeFromGroup(TaskGroup *gp)
 void
 Task::terminate()
 {
+    //TODO: race-condition, termiate before register
+    //Done
+    std::lock_guard<std::mutex> _(mut_);
     DEBUG_PRINT(DEBUG_Task, "Task %d terminating...", debugId);
     state = Terminated;
+
+    // this code is inside critical area,
+    // because TaskGroup destructor might be called
+    // at the same time
     for ( auto group : groups ) {
         group->informDone(shared_from_this());
     }
@@ -129,8 +143,11 @@ Task::getStateName(int s)
 void
 Task::continuationIn()
 {
-    DEBUG_PRINT(DEBUG_Task, "Task %d continuationIn with state %s...", debugId, getStateName(state));
+    DEBUG_PRINT(DEBUG_Task, "Thread %d: Task %d continuationIn with state %s...",
+            globalMediator.thread_id, debugId, getStateName(state));
+    proccessedAfterYield = false;
     if ( state == Task::Runnable ) {
+        MUST_TRUE(task_continuation, "task: %d", co_currentTask->debugId);
         task_continuation = task_continuation.resume();
     } else if ( state == Task::Initial ) {
         state = Task::Runnable;

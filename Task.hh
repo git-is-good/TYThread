@@ -6,23 +6,29 @@
 #include "debug.hh"
 
 #include <atomic>
+#include <mutex>
 #include <functional>
 #include <memory>
 #include <vector>
 #include <boost/context/all.hpp>
 
 
-#ifndef _UNIT_TEST_TASK_
+#if defined _UNIT_TEST_TASK_
 
-#include "PerThreadMgr.hh"
-#define co_currentTask globalTaskMgr.currentTask()
-
-#else /* doing unit test */
-
+#undef co_currentTask
 extern TaskPtr bigTestTask;
 #define co_currentTask bigTestTask
 
-#endif /* _UNIT_TEST_TASK_ */
+#elif defined _UNIT_TEST_PER_THREAD_MGR_
+
+#undef co_currentTask
+#include "PerThreadMgr.hh"
+#define co_currentTask globalTaskMgr.currentTask()
+
+#else /* in a normal setting */
+
+
+#endif 
 
 class Task 
     : public std::enable_shared_from_this<Task>,
@@ -50,6 +56,7 @@ public:
 
         END_OF_STATE,
     };
+
     static const char *getStateName(int s);
 
     explicit Task(std::function<void()> callback)
@@ -57,13 +64,16 @@ public:
         , debugId(++debugId_counter)
     {}
     ~Task();
-    void addToGroup(TaskGroup *gp);
+    void addToGroup_locked(TaskGroup *gp);
     void removeFromGroup(TaskGroup *gp);
     void terminate();
     void continuationIn();
     static void continuationOut();
 
 //private:
+    bool isFini() const {
+        return state == Task::Terminated;
+    }
     int state = Initial;
     std::function<void()>   callback;
 
@@ -71,10 +81,14 @@ public:
     continuation_t          saved_continuation;
     continuation_t          task_continuation;
 
+    /* this vector will be accessed concurrently */
     std::vector<TaskGroup*> groups;
+    std::mutex              mut_;
 
     int debugId;
     static std::atomic<int> debugId_counter;
+
+    std::atomic<bool>       proccessedAfterYield{false};
 };
 
 #define co_yield Task::continuationOut()

@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <mutex>
+#include <atomic>
 
 /* TaskGroup might be accessed by multiple threads
  * through informDone();
@@ -18,10 +19,15 @@ public:
     void informDone(TaskPtr ptr);
     
     ~TaskGroup();
-private:
+
+    int debugId = ++debugId_counter;
+//private:
     TaskPtr blockedTask;
     std::vector<TaskPtr> taskPtrs;
     std::mutex          mut_;
+
+    static std::atomic<int> debugId_counter;
+
 
 };
 

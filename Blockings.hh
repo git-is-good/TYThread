@@ -8,6 +8,8 @@
 #include <deque>
 #include <set>
 #include <unordered_set>
+#include <vector>
+#include "debug.hh"
 
 template<class T>
 struct set_wrapper {
@@ -67,21 +69,23 @@ public:
     using container_type = typename QueueContainer<T>::type;
     using value_type = T;
 
-    /* isEmptyBefore */
-    bool enqueue(value_type const &e) {
+    void enqueue(value_type const &e) {
         std::lock_guard<LockType>     lock(mut_);
-        bool isEmptyBefore = container.empty();
-
         container.push_back(e);
-        return isEmptyBefore;
     }
 
-    bool enqueue(value_type &&e) {
-        std::lock_guard<LockType>     lock(mut_);
-        bool isEmptyBefore = container.empty();
+    template<class Iterator>
+    void enqueue_by_move(Iterator first, Iterator last) {
+        std::lock_guard<LockType>   lock(mut_);
+        while ( first != last ) {
+            container.push_back(std::move(*first));
+            ++first;
+        }
+    }
 
+    void enqueue(value_type &&e) {
+        std::lock_guard<LockType>     lock(mut_);
         container.push_back(std::move(e));
-        return isEmptyBefore;
     }
 
     T dequeue() {
@@ -101,9 +105,28 @@ public:
         if ( container.empty() ) {
             return std::make_pair(false, T{});
         } else {
-            T res = container.front();
+            T res = std::move(container.front());
             container.pop_front();
-            return std::make_pair(true, move(res));
+            return std::make_pair(true, std::move(res));
+        }
+    }
+
+    std::pair<bool, std::vector<T>> try_dequeue_half() {
+        std::lock_guard<LockType>       lock(mut_);
+        DEBUG_PRINT(DEBUG_Blockings,
+                "original size: %lu", container.size());
+        if ( container.empty() ) {
+            return std::make_pair(false, std::vector<T>{});
+        } else {
+            std::size_t sz = (container.size() + 1) / 2;
+            std::vector<T> res(sz);
+            for ( size_t i = 0; i < sz; i++ ) {
+                res[i] = std::move(container.front());
+                container.pop_front();
+            }
+            DEBUG_PRINT(DEBUG_Blockings,
+                    "after size: %lu, vec size: %lu, sz: %lu", container.size(), res.size(), sz);
+            return std::make_pair(true, std::move(res));
         }
     }
 

@@ -7,7 +7,9 @@
 
 #include <utility>
 #include <memory>
-#include <atomic>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
 
 class GlobalMediator : public Singleton {
 public:
@@ -18,21 +20,36 @@ public:
         return pmgrs[thread_id]->currentTask__;
     }
 
-private:
+    static void TerminateGracefully() {
+        Instance().terminatable = true;
+    }
+
+
+//private:
     static PerThreadMgr *getThisPerThreadMgr() {
-        return pmgrs[thread_id].get();
+        return Instance().pmgrs[thread_id].get();
     }
     static GlobalMediator &Instance() {
         static GlobalMediator g;
         return g;
     }
     static thread_local int thread_id;
-    static std::atomic<int> thread_id_counter;
 
+    /* called by the main thread to initailize all env */
     static void Init();
+    bool terminatable = false;
 
-    int determineThreads();
     std::vector<std::unique_ptr<PerThreadMgr>> pmgrs;
+
+    std::mutex globalWaitMut_;
+    std::condition_variable globalWaitCond_;
+
+    std::vector<std::thread> children;
 };
+
+#define globalMediator      GlobalMediator::Instance()
+#define co_currentTask      globalMediator.getThisPerThreadMgr()->currentTask__
+#define co_globalWaitMut    globalMediator.globalWaitMut_
+#define co_globalWaitCond   globalMediator.globalWaitCond_
 
 #endif /* _GLOBALMEDIATOR_HH_ */
