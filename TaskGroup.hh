@@ -14,16 +14,24 @@
  */
 class TaskGroup : public NonCopyable {
 public:
+    TaskGroup();
     void wait();
-    TaskGroup &registe(TaskPtr ptr);
+    TaskGroup &registe(TaskPtr &ptr);
+    TaskGroup &registe(TaskPtr &&ptr) {
+        registe(ptr);
+        return *this;
+    }
     void informDone(TaskPtr ptr);
     bool resumeIfNothingToWait(TaskPtr &ptr);
-    void pushTaskPtr(TaskPtr ptr);
+    void pushTaskPtr(TaskPtr &&ptr);
     
     ~TaskGroup();
 
     int debugId = ++debugId_counter;
 //private:
+    bool    inCoroutine;
+//    bool    blocked = false;
+
     TaskPtr blockedTask;
     std::vector<TaskPtr> taskPtrs;
     std::mutex          mut_;

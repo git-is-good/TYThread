@@ -11,13 +11,28 @@
 #include <condition_variable>
 #include <thread>
 
+#define globalMediator      GlobalMediator::Instance()
+#define co_currentTask      globalMediator.getThisPerThreadMgr()->currentTask__
+#define co_globalWaitMut    globalMediator.globalWaitMut_
+#define co_globalWaitCond   globalMediator.globalWaitCond_
+#define co_yield            globalMediator.yieldRequest()
+
+struct ThreadLocalInfo : public NonCopyable {
+    PerThreadMgr    pmgr;
+    bool            isMainYield = false;
+};
+
 class GlobalMediator : public Singleton {
 public:
+    bool inCoroutine();
+    bool hasEnoughStack();
+    void yieldRequest();
     void addRunnable(TaskPtr ptr);
+    bool run_once();
     void run();
 
     TaskPtr currentTask() {
-        return pmgrs[thread_id]->currentTask__;
+        return getThisPerThreadMgr()->currentTask__;
     }
 
     static void TerminateGracefully() {
@@ -27,7 +42,7 @@ public:
 
 //private:
     static PerThreadMgr *getThisPerThreadMgr() {
-        return Instance().pmgrs[thread_id].get();
+        return &Instance().threadLocalInfos[thread_id]->pmgr;
     }
     static GlobalMediator &Instance() {
         static GlobalMediator g;
@@ -39,18 +54,12 @@ public:
     static void Init();
     bool terminatable = false;
 
-    std::vector<std::unique_ptr<PerThreadMgr>> pmgrs;
+    std::vector<std::unique_ptr<ThreadLocalInfo>> threadLocalInfos;
 
     std::mutex globalWaitMut_;
     std::condition_variable globalWaitCond_;
 
     std::vector<std::thread> children;
 };
-
-#define globalMediator      GlobalMediator::Instance()
-#define co_currentTask      globalMediator.getThisPerThreadMgr()->currentTask__
-#define co_globalWaitMut    globalMediator.globalWaitMut_
-#define co_globalWaitCond   globalMediator.globalWaitCond_
-#define co_yield            co_currentTask->continuationOut() 
 
 #endif /* _GLOBALMEDIATOR_HH_ */

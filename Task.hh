@@ -59,7 +59,7 @@ public:
 
     static const char *getStateName(int s);
 
-    explicit Task(std::function<void()> callback)
+    explicit Task(std::function<void()> callback, bool isPure = false)
         : callback(callback)
         , debugId(++debugId_counter)
     {}
@@ -67,15 +67,21 @@ public:
     bool addToGroup(TaskGroup *gp);
     void removeFromGroup(TaskGroup *gp);
     void terminate();
+
+    void runInStack();
     void continuationIn();
     void continuationOut();
 
 //private:
+    std::function<void()>   callback;
+
+    /* a pure task will not block, and can be scheduled in the current stack */
+    bool                    isPure = false;
+
     bool isFini() const {
         return state == Task::Terminated;
     }
     int state = Initial;
-    std::function<void()>   callback;
 
     using continuation_t = boost::context::continuation;
     continuation_t          saved_continuation;

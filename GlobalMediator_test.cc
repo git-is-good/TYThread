@@ -27,15 +27,19 @@ void co_main2() {
 
     TaskGroup group;
     for ( int i = 0; i < num_of_tasks; ++i ) {
+        bool isPure = i % 2 ? true : false;
         TaskPtr ptr = std::make_shared<Task>(
-            [i, mat_, x_, res_] () -> void {
+            [i, mat_, x_, res_, isPure] () -> void {
                 for ( int j = 0; j < chunk; ++j ) {
                     res_[chunk * i + j] = 0;
+                    if ( !isPure && j == chunk / 2 ) {
+                        co_yield;
+                    }
                     for ( int k = 0; k < matsz; ++k ) {
                         res_[chunk * i + j] += mat_[(chunk * i + j) * matsz + k] * x_[k];
                     }
                 }
-            });
+            }, isPure);
         globalMediator.addRunnable(ptr);
         group.registe(ptr);
     }
@@ -78,7 +82,7 @@ void co_main1(int s) {
                     // some tasks are waited by multiple groups
                     // must catch by value, because the outer scope might
                     // terminate sooner than the inner task
-                    [someTasks] () -> void {
+                    [someTasks] () mutable -> void {
                         TaskGroup group_;
                         for ( auto &ptr : someTasks ) {
                             group_.registe(ptr);
@@ -88,7 +92,7 @@ void co_main1(int s) {
                             TaskPtr ptr = std::make_shared<Task>(
                                     [k] () -> void {
         //                                printf("inner running: k = %d\n", k);
-                                    });
+                                    }, true);
                             group_.registe(ptr);
                             globalMediator.addRunnable(ptr);
                         }
@@ -103,7 +107,7 @@ void co_main1(int s) {
 void co_main_() {
     for ( int i = 0; i < 50000; i++ ) co_main1(i);
 //    co_main2();
-    globalMediator.TerminateGracefully();
+    GlobalMediator::TerminateGracefully();
 }
 
 void test() {

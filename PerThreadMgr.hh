@@ -14,7 +14,9 @@ public:
     }
     bool run_runnable();
 
-    // stealing is done in GlobalScheduler
+    bool runInStackPureTask();
+
+    // stealing is done in GlobalMediator
 
     bool run_mpi_blocked();
 

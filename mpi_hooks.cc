@@ -17,10 +17,17 @@ MPI_Send_Hook(
     r = MPI_Isend(buf, count, datatype, dest, tag, comm, &request);
     RETURN_IF_NOT_SUCCESS(r);
 
+    int flag;
+    r = MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
+    RETURN_IF_NOT_SUCCESS(r);
+    if ( flag ) {
+        // already ok
+        return r;
+    }
+
     co_currentTask->state = Task::MPIBlocked;
     co_yield;
 
-    int flag;
     for ( ;; ) {
         r = MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
         RETURN_IF_NOT_SUCCESS(r);
@@ -45,10 +52,17 @@ MPI_Recv_Hook(
     r = MPI_Irecv(buf, count, datatype, source, tag, comm, &request);
     RETURN_IF_NOT_SUCCESS(r);
 
+    int flag;
+    r = MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
+    RETURN_IF_NOT_SUCCESS(r);
+    if ( flag ) {
+        // already ok
+        return r;
+    }
+
     co_currentTask->state = Task::MPIBlocked;
     co_yield;
 
-    int flag;
     for ( ;; ) {
         r = MPI_Test(&request, &flag, status);
         RETURN_IF_NOT_SUCCESS(r);

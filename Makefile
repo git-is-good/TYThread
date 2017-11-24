@@ -1,7 +1,10 @@
 CC := clang++
-CXXFLAGS := --std=c++14 -g
+CXXFLAGS := --std=c++14 -g -O3
 
-TARGETS := PerThreadMgr_test Task_test GlobalMediator_test
+TARGETS := PerThreadMgr_test Task_test GlobalMediator_test user_test
+
+user_test: Task.cc TaskGroup.cc PerThreadMgr.cc GlobalMediator.cc user_test.cc
+	$(CC) $(CXXFLAGS) -o $@ $^ -lboost_context
 
 GlobalMediator_test: Task.cc TaskGroup.cc PerThreadMgr.cc GlobalMediator.cc GlobalMediator_test.cc
 	$(CC) $(CXXFLAGS) -D_UNIT_TEST_GLOBAL_MEDIATOR_ -o $@ $^ -lboost_context

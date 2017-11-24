@@ -13,6 +13,35 @@ PerThreadMgr globalTaskMgr;
 #endif
 
 bool
+PerThreadMgr::runInStackPureTask()
+{
+    auto res_pair = runnable_queue.try_dequeue();
+    //TODO: check hasEnoughStack()
+    if ( res_pair.first ) {
+        TaskPtr ptr = std::move(res_pair.second);
+        if ( ptr->isPure ) {
+            DEBUG_PRINT(DEBUG_PerThreadMgr,
+                    "PerThreadMgr %d: about to run in-stack task %d...", debugId, ptr->debugId);
+
+            TaskPtr oldPtr = std::move(co_currentTask);
+            co_currentTask = std::move(ptr);
+            co_currentTask->runInStack();
+            co_currentTask = std::move(oldPtr);
+            return true;
+        } else {
+            DEBUG_PRINT(DEBUG_PerThreadMgr,
+                    "PerThreadMgr %d: Task %d not pure, cannot in stack...", debugId, ptr->debugId);
+            runnable_queue.enqueue(ptr);
+            return false;
+        }
+    } else {
+            DEBUG_PRINT(DEBUG_PerThreadMgr,
+                    "PerThreadMgr %d: runnable_queue is empty...", debugId);
+        return false;
+    }
+}
+
+bool
 PerThreadMgr::run_runnable()
 {
     auto res_pair = runnable_queue.try_dequeue();

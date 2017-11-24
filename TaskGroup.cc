@@ -12,26 +12,60 @@
 #include <thread>
 #include <chrono>
 
+TaskGroup::TaskGroup()
+    : inCoroutine(globalMediator.inCoroutine())
+{}
+
 void
 TaskGroup::wait()
 {
-    bool isRealWait = false;
-    {
-        std::lock_guard<std::mutex> _(mut_);
-        isRealWait = !taskPtrs.empty();
-        if ( isRealWait ) {
-            DEBUG_PRINT(DEBUG_TaskGroup, "task %d starts GroupWait at TaskGroup %d",
-                    co_currentTask->debugId, debugId);
-            co_currentTask->state = Task::GroupWait;
-            co_currentTask->blockedBy = this;
-        } else {
-            DEBUG_PRINT(DEBUG_TaskGroup, "TaskGroup nothing to wait");
-        }
-    }
+  bool isRealWait = false;
+  {
+      std::lock_guard<std::mutex> _(mut_);
+      isRealWait = !taskPtrs.empty();
+      if ( isRealWait ) {
+          DEBUG_PRINT(DEBUG_TaskGroup, "task %d starts GroupWait at TaskGroup %d",
+                  co_currentTask->debugId, debugId);
+          co_currentTask->state = Task::GroupWait;
+          co_currentTask->blockedBy = this;
+      } else {
+          DEBUG_PRINT(DEBUG_TaskGroup, "TaskGroup nothing to wait");
+      }
+  }
 
-    if ( isRealWait ) {
-        co_yield;
-    }
+  if ( isRealWait ) {
+      co_yield;
+  }
+
+//    bool isRealWait = false;
+//    {
+//        std::lock_guard<std::mutex> _(mut_);
+//        isRealWait = !taskPtrs.empty();
+//        blocked = isRealWait;
+//    }
+//
+//    if ( isRealWait ) {
+//        DEBUG_PRINT(DEBUG_TaskGroup, "task %d starts GroupWait at TaskGroup{%s} %d",
+//                co_currentTask->debugId, inCoroutine ? "co" : "main-code", debugId);
+//        if ( inCoroutine ) {
+//            co_currentTask->state = Task::GroupWait;
+//            co_currentTask->blockedBy = this;
+//            co_yield;
+//        } else {
+//            // in main-code
+//            for ( ;; ) {
+//                if ( !blocked ) break;
+//
+//                if ( globalMediator.run_once() ) continue;
+//
+//                // nothing remaining ...
+//                std::unique_lock<std::mutex> lock(co_globalWaitMut);
+//                co_globalWaitCond.wait_for(lock, std::chrono::milliseconds(Config::Instance().max_wait_task_time));
+//            }
+//        }
+//    } else {
+//        DEBUG_PRINT(DEBUG_TaskGroup, "TaskGroup %d nothing to wait", debugId);
+//    }
 }
 
 bool
@@ -48,14 +82,14 @@ TaskGroup::resumeIfNothingToWait(TaskPtr &ptr)
 }
 
 void
-TaskGroup::pushTaskPtr(TaskPtr ptr)
+TaskGroup::pushTaskPtr(TaskPtr &&ptr)
 {
     std::lock_guard<std::mutex> _(mut_);
-    taskPtrs.push_back(ptr);
+    taskPtrs.push_back(std::move(ptr));
 }
 
 TaskGroup&
-TaskGroup::registe(TaskPtr ptr)
+TaskGroup::registe(TaskPtr &ptr)
 {
     if ( !ptr->addToGroup(this) ) {
         return *this;
@@ -68,6 +102,7 @@ TaskGroup::registe(TaskPtr ptr)
 void
 TaskGroup::informDone(TaskPtr ptr)
 {
+//    bool canrun = false;
     TaskPtr nowCanRun = nullptr;
     {
         std::lock_guard<std::mutex> _(mut_);
@@ -76,25 +111,32 @@ TaskGroup::informDone(TaskPtr ptr)
         auto iter = std::find(taskPtrs.begin(), taskPtrs.end(), ptr);
         MUST_TRUE(iter != taskPtrs.end(), "ptr: %d", ptr->debugId);
         taskPtrs.erase(iter);
+//        if ( blocked && taskPtrs.empty() ) {
         if ( taskPtrs.empty() ) {
             nowCanRun = std::move(blockedTask);
+//            canrun = true;
+//            blocked = false;
         }
     }
+
+//    if ( canrun ) {
+//        DEBUG_PRINT(DEBUG_TaskGroup,
+//                "informDone causes task{%s} %d blocked by %d runnable", inCoroutine ? "co" : "main-code", blockedTask->debugId, debugId);
+//        if ( inCoroutine ) {
+//            blockedTask->state = Task::Runnable;
+//            globalMediator.addRunnable(blockedTask);
+//            blockedTask = nullptr;
+//        } else {
+//            co_globalWaitCond.notify_all();
+//        }
+//    }
 
     if ( nowCanRun ) {
         nowCanRun->state = Task::Runnable;
         DEBUG_PRINT(DEBUG_TaskGroup,
                 "informDone causes task %d blocked by %d runnable", nowCanRun->debugId, debugId);
 
-#ifdef _UNIT_TEST_PER_THREAD_MGR_ 
-
-        globalTaskMgr.addRunnable(nowCanRun);
-
-#else /* _UNIT_TEST_PER_THREAD_MGR_ */
-
         globalMediator.addRunnable(nowCanRun);
-
-#endif /* _UNIT_TEST_PER_THREAD_MGR_ */
     }
 }
 

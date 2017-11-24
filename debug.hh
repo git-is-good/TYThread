@@ -10,6 +10,13 @@ enum {
     DEBUG_PerThreadMgr      = (1 << 2),
     DEBUG_GlobalMediator    = (1 << 3),
     DEBUG_Blockings         = (1 << 4),
+
+    DEBUG_DEBUG             = (1 << 20),
+    DEBUG_INFO              = (1 << 21),
+    DEBUG_WARNING           = (1 << 22),
+    DEBUG_ERROR             = (1 << 23),
+    DEBUG_FATAL             = (1 << 24),
+
 };
 
 //#define current_debeg_setting (DEBUG_Task | DEBUG_TaskGroup | DEBUG_PerThreadMgr | DEBUG_GlobalMediator) 

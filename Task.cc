@@ -53,6 +53,34 @@
  *              // when a task terminates, it removes itself from 
  *              // relative groups
  *              
+ *
+ *  How to yield ?
+ *  running code can be in 2 states:
+ *  1) main-code
+ *  2) coroutine
+ *
+ *  main-code scheduler can be in 2 states:
+ *  1) normal
+ *  2) main-yield: when some main-code yield itself, and the scheduler
+ *      took the control flow
+ *
+ *  when co_yield is called:
+ *  -- if in main-code:
+ *          call main-code scheduler, and set the scheduler to main-yield state
+ *          pop a Task from runnable_queue, or steal a Task
+ *          -- if 1, has a poped Task and 2, has enough stack space and
+ *             3, the poped Task is a pure computation:
+ *             run it directly in the current stack
+ *          -- else, regard the yielding function as in MPIBlocked,
+ *             perform mpi_blocked_queue polling.
+ *
+ *  -- else, it's in a coroutine
+ *          pop a Task from runnable_queue, or steal a Task
+ *          -- if 1, has a poped Task and 2, has enough stack space and
+ *             3, the poped Task is a pure computation:
+ *             run it directly in the current stack
+ *          -- else, continuationOut to the main-code scheduler
+ *
  */
 
 #include "GlobalMediator.hh"
@@ -105,26 +133,12 @@ Task::addToGroup(TaskGroup *gp)
 }
 
 void
-Task::removeFromGroup(TaskGroup *gp)
-{
-    std::lock_guard<std::mutex> _(mut_);
-    DEBUG_PRINT(DEBUG_Task, "Task %d removeFromGroup %d...", debugId, gp->debugId);
-    auto iter = std::find(groups.begin(), groups.end(), gp);
-    groups.erase(iter);
-}
-
-void
 Task::terminate()
 {
-    //TODO: race-condition, termiate before register
-    //Done
     std::lock_guard<std::mutex> _(mut_);
     DEBUG_PRINT(DEBUG_Task, "Task %d terminating...", debugId);
     state = Terminated;
 
-    // this code is inside critical area,
-    // because TaskGroup destructor might be called
-    // at the same time
     for ( auto group : groups ) {
         group->informDone(shared_from_this());
     }
@@ -169,5 +183,20 @@ Task::continuationIn()
                 }
                 return std::move(saved_continuation);
             });
+    }
+}
+
+void
+Task::runInStack()
+{
+    DEBUG_PRINT(DEBUG_Task, "Thread %d: Task %d runInStack()", globalMediator.thread_id, debugId);
+    MUST_TRUE(isPure, "runInStack() must be pure task");
+
+    try {
+        callback();
+        terminate();
+    } catch ( std::exception const &e ) {
+        // TODO: add exception handling
+        terminate();
     }
 }
