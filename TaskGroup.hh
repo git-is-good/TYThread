@@ -17,7 +17,8 @@ public:
     void wait();
     TaskGroup &registe(TaskPtr ptr);
     void informDone(TaskPtr ptr);
-    bool isWaitingListAreadyEmpty_locked() { return taskPtrs.empty(); }
+    bool resumeIfNothingToWait(TaskPtr &ptr);
+    void pushTaskPtr(TaskPtr ptr);
     
     ~TaskGroup();
 

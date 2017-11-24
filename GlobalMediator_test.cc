@@ -72,35 +72,37 @@ void co_main1(int s) {
      * with v captured. It is ok syntactically, but when the child coroutine is running, the 
      * parent's stack was cleanup to place the child, thus child holds a wrong pointer
      */
-    globalMediator.addRunnable(
-            std::make_shared<Task>(
-                // some tasks are waited by multiple groups
-                // must catch by value, because the outer scope might
-                // terminate sooner than the inner task
-                [someTasks] () -> void {
-                    TaskGroup group_;
-                    for ( auto &ptr : someTasks ) {
-                        group_.registe(ptr);
-                    }
+    FOR_N_TIMES(20) {
+        globalMediator.addRunnable(
+                std::make_shared<Task>(
+                    // some tasks are waited by multiple groups
+                    // must catch by value, because the outer scope might
+                    // terminate sooner than the inner task
+                    [someTasks] () -> void {
+                        TaskGroup group_;
+                        for ( auto &ptr : someTasks ) {
+                            group_.registe(ptr);
+                        }
 
-                    for ( int k = 0; k < 4; ++k ) {
-                        TaskPtr ptr = std::make_shared<Task>(
-                                [k] () -> void {
-    //                                printf("inner running: k = %d\n", k);
-                                });
-                        group_.registe(ptr);
-                        globalMediator.addRunnable(ptr);
-                    }
-    //                printf("Bonjour... Start waiting\n");
-                    group_.wait();
-    //                printf("Au revoir\n");
-            }));
+                        for ( int k = 0; k < 4; ++k ) {
+                            TaskPtr ptr = std::make_shared<Task>(
+                                    [k] () -> void {
+        //                                printf("inner running: k = %d\n", k);
+                                    });
+                            group_.registe(ptr);
+                            globalMediator.addRunnable(ptr);
+                        }
+        //                printf("Bonjour... Start waiting\n");
+                        group_.wait();
+        //                printf("Au revoir\n");
+                }));
+    }
     group.wait();
 }
 
 void co_main_() {
-    for ( int i = 0; i < 1000000; i++ ) co_main1(i);
-    //co_main2();
+    for ( int i = 0; i < 50000; i++ ) co_main1(i);
+//    co_main2();
     globalMediator.TerminateGracefully();
 }
 

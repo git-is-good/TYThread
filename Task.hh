@@ -64,7 +64,7 @@ public:
         , debugId(++debugId_counter)
     {}
     ~Task();
-    void addToGroup_locked(TaskGroup *gp);
+    bool addToGroup(TaskGroup *gp);
     void removeFromGroup(TaskGroup *gp);
     void terminate();
     void continuationIn();

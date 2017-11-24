@@ -25,11 +25,6 @@ PerThreadMgr::run_runnable()
         MUST_TRUE(ptr != nullptr, "PerThreadMgr: %d", debugId);
         currentTask__ = ptr;
 
-        //TODO: race-condition: when continuationOut with
-        // state GroupWait, another thread can wake it up
-        // before this "switch" statement, which leads
-        // this Task being enqueueed 2 times
-        //Done
         ptr->continuationIn();
         currentTask__ = nullptr;
 
@@ -44,27 +39,9 @@ PerThreadMgr::run_runnable()
             DEBUG_PRINT(DEBUG_TaskGroup,
                     "Task %d continuationOut with GroupWait at TaskGroup %d",
                     ptr->debugId, ptr->blockedBy->debugId);
-            {
-                bool isRunnable = false;
-                {
-                    std::lock_guard<std::mutex> _(ptr->blockedBy->mut_);
 
-                    if ( ptr->blockedBy->isWaitingListAreadyEmpty_locked() ) {
-                        ptr->state = Task::Runnable;
-                        isRunnable = true;
-                        //TODO: race-condition: when ptr is put to runnable_queue,
-                        // it might be immediately running in another thread because of
-                        // work stealing, then the TaskGroup can be destroyed *before*
-                        // the end of this scope, leading mut_ invalid
-                        //Done
-                        //runnable_queue.enqueue(ptr);
-                    } else {
-                        ptr->blockedBy->blockedTask = ptr;
-                    }
-                }
-                if ( isRunnable ) {
-                    runnable_queue.enqueue(ptr);
-                }
+            if ( ptr->blockedBy->resumeIfNothingToWait(ptr) ) {
+                runnable_queue.enqueue(ptr);
             }
             break;
         default:

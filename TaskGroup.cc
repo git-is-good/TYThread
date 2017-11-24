@@ -34,18 +34,34 @@ TaskGroup::wait()
     }
 }
 
+bool
+TaskGroup::resumeIfNothingToWait(TaskPtr &ptr)
+{
+    std::lock_guard<std::mutex> _(mut_);
+    if ( taskPtrs.empty() ) {
+        ptr->state = Task::Runnable;
+        return true;
+    } else {
+        blockedTask = ptr;
+        return false;
+    }
+}
+
+void
+TaskGroup::pushTaskPtr(TaskPtr ptr)
+{
+    std::lock_guard<std::mutex> _(mut_);
+    taskPtrs.push_back(ptr);
+}
+
 TaskGroup&
 TaskGroup::registe(TaskPtr ptr)
 {
-    std::lock_guard<std::mutex> _(ptr->mut_);
-    if ( ptr->isFini() ) return *this;
+    if ( !ptr->addToGroup(this) ) {
+        return *this;
+    }
 
-    // after this point, real register
     DEBUG_PRINT(DEBUG_TaskGroup, "task %d registering to TaskGroup %d...", ptr->debugId, debugId);
-    ptr->addToGroup_locked(this);
-
-    std::lock_guard<std::mutex> __(mut_);
-    taskPtrs.push_back(ptr);
     return *this;
 }
 
@@ -82,8 +98,9 @@ TaskGroup::informDone(TaskPtr ptr)
     }
 }
 
-/* no need to use a lock, user is responsible to ensure
- * there is no access to this object when destructor is called */
+/* If registe is called before, then *MUST* call wait,
+ * because with raw pointer in Task, informDone might be called
+ * when the destructor is executing */ 
 TaskGroup::~TaskGroup()
 {
     DEBUG_PRINT(DEBUG_TaskGroup, "TaskGroup %d destroying...", debugId);
@@ -91,9 +108,9 @@ TaskGroup::~TaskGroup()
     // defensive
     MUST_TRUE(blockedTask == nullptr,
             "TaskGroup %d blockedTask should be nullptr when TaskGroup is under destruction", debugId);
-    for ( auto & ptr : taskPtrs ) {
-        ptr->removeFromGroup(this);
-    }
+
+    MUST_TRUE(taskPtrs.empty(),
+            "User error: TaskGroup %d destructor called without wait()", debugId);
 }
 
 std::atomic<int> TaskGroup::debugId_counter = {0};

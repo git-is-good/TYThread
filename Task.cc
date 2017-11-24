@@ -89,11 +89,19 @@ Task::continuationOut()
     saved_continuation = saved_continuation.resume();
 }
 
-void
-Task::addToGroup_locked(TaskGroup *gp)
+bool
+Task::addToGroup(TaskGroup *gp)
 {
+    std::lock_guard<std::mutex> _(mut_);
+
     DEBUG_PRINT(DEBUG_Task, "Task %d addToGroup %d...", debugId, gp->debugId);
-    groups.push_back(gp);
+    if ( !isFini() ) {
+        groups.push_back(gp);
+        gp->pushTaskPtr(shared_from_this());
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void
