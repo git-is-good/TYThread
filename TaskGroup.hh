@@ -35,8 +35,8 @@ public:
 //    bool    blocked = false;
 
     TaskPtr blockedTask;
-//    std::vector<TaskPtr> taskPtrs;
-    std::unordered_set<TaskPtr> taskPtrs;
+    std::vector<TaskPtr> taskPtrs;
+//    std::unordered_set<TaskPtr> taskPtrs;
 //    std::mutex          mut_;
     Spinlock            mut_;
 

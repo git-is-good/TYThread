@@ -96,12 +96,6 @@
 #include <algorithm>
 #include <boost/context/all.hpp>
 
-#ifdef _UNIT_TEST_TASK_
-
-TaskPtr bigTestTask;
-
-#endif /* _UNIT_TEST_TASK_ */
-
 std::atomic<int> Task::debugId_counter = {0};
 
 Task::~Task()
@@ -127,7 +121,7 @@ Task::addToGroup(TaskGroup *gp)
     DEBUG_PRINT(DEBUG_Task, "Task %d addToGroup %d...", debugId, gp->debugId);
     if ( !isFini() ) {
         groups.push_back(gp);
-        gp->pushTaskPtr(shared_from_this());
+        gp->pushTaskPtr(TaskPtr(this));
         return true;
     } else {
         return false;
@@ -142,7 +136,7 @@ Task::terminate()
     state = Terminated;
 
     for ( auto group : groups ) {
-        group->informDone(shared_from_this());
+        group->informDone(TaskPtr(this));
     }
 }
 
@@ -222,8 +216,8 @@ private:
 void*
 Task::operator new(std::size_t sz)
 {
-    printf("!!!\n");
 //    return ::operator new(sz);
+    MUST_TRUE(sz == sizeof(Task), "Task new operator only for Task object");
     return TaskPool::Instance().alloc();
 }
 

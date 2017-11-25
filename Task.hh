@@ -14,8 +14,7 @@
 #include <boost/context/all.hpp>
 
 class Task 
-    : public std::enable_shared_from_this<Task>,
-      public NonCopyable
+    : public RefCounted
 {
 public:
     enum {
@@ -85,6 +84,8 @@ public:
     static void* operator new(std::size_t sz);
     static void operator delete(void *p, std::size_t sz);
 };
+
+using TaskPtr = DerivedRefPtr<Task>;
 
 #endif /* _TASK_HH_ */
 

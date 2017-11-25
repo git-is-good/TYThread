@@ -3,20 +3,22 @@
 
 #include "debug.hh"
 #include "util.hh"
+#include "Spinlock.hh"
 
 #include <new>
 #include <memory>
 #include <array>
+#include <mutex>
 
 
-#include <stdio.h>
-#define DEBUG_PRINT_LOCAL(fmt, ...) \
-    fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+//#include <stdio.h>
+//#define DEBUG_PRINT_LOCAL(fmt, ...) \
+//    fprintf(stderr, fmt "\n", ##__VA_ARGS__)
 
-//#define DEBUG_PRINT_LOCAL(fmt, ...)
+#define DEBUG_PRINT_LOCAL(fmt, ...)
 
 
-template<class T>
+template<class T, class LockType = Spinlock>
 class ObjectLayer : public NonCopyable {
 public:
     enum {
@@ -57,6 +59,7 @@ public:
     }
 
     void *alloc() {
+        std::lock_guard<LockType> _(mut_);
         if ( !head ) return nullptr;
 
         void *res = head;
@@ -70,6 +73,7 @@ public:
 
     /* return isEmpty after reclaim */
     int reclaim(void *ptr) {
+        std::lock_guard<LockType> _(mut_);
         if ( !ptr ) {
             DEBUG_PRINT_LOCAL("reclaim nullptr...");
             return used == 0 ? NotInUseAfter : StillInUseAfter;
@@ -96,9 +100,10 @@ private:
     /* in number-of-object, NOT byte */
     std::size_t     arena_cap;
     std::size_t     used;
+    LockType        mut_;
 };
 
-template<class T>
+template<class T, class LockType = Spinlock>
 class ObjectPool : public NonCopyable {
 public:
     ObjectPool(std::size_t pool_init_size, std::size_t enlarge_rate)
@@ -109,6 +114,7 @@ public:
     }
 
     void *alloc() {
+        std::lock_guard<LockType> _(mut_);
         void *res;
         for ( int i = current_layer; i >= 0; --i ) {
             if ( (res = layers[i]->alloc()) != nullptr ) {
@@ -128,6 +134,7 @@ public:
     }
 
     void reclaim(void *ptr) {
+        std::lock_guard<LockType> _(mut_);
         for ( int i = current_layer; i >= 0; --i ) {
             int res = layers[i]->reclaim(ptr);
             if ( res == ObjectLayer<T>::NotHere ) continue;
@@ -165,6 +172,7 @@ private:
     int current_layer = 0;
     int current_size = pool_init_size;
 
+    LockType mut_;
 };
 
 // template<class T>

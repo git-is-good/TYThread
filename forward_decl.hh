@@ -6,7 +6,7 @@
 class TaskGroup;
 
 class Task;
-using TaskPtr = std::shared_ptr<Task>;
+//using TaskPtr = std::shared_ptr<Task>;
 
 #endif /* _FORWARD_DECL_HH_ */
 

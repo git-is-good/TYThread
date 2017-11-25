@@ -28,7 +28,7 @@ void co_main2() {
     TaskGroup group;
     for ( int i = 0; i < num_of_tasks; ++i ) {
         bool isPure = i % 2 ? true : false;
-        TaskPtr ptr = std::make_shared<Task>(
+        TaskPtr ptr = makeRefPtr<Task>(
             [i, mat_, x_, res_, isPure] () -> void {
                 for ( int j = 0; j < chunk; ++j ) {
                     res_[chunk * i + j] = 0;
@@ -59,7 +59,7 @@ void co_main1(int s) {
 
     TaskGroup group;
     for ( int i = 0; i < 5; i++ ) {
-        TaskPtr ptr = std::make_shared<Task>(
+        TaskPtr ptr = makeRefPtr<Task>(
                     [i] () -> void {
     //                    printf("running i = %d\n", i);
                     }
@@ -78,7 +78,7 @@ void co_main1(int s) {
      */
     FOR_N_TIMES(20) {
         globalMediator.addRunnable(
-                std::make_shared<Task>(
+                makeRefPtr<Task>(
                     // some tasks are waited by multiple groups
                     // must catch by value, because the outer scope might
                     // terminate sooner than the inner task
@@ -89,7 +89,7 @@ void co_main1(int s) {
                         }
 
                         for ( int k = 0; k < 4; ++k ) {
-                            TaskPtr ptr = std::make_shared<Task>(
+                            TaskPtr ptr = makeRefPtr<Task>(
                                     [k] () -> void {
         //                                printf("inner running: k = %d\n", k);
                                     }, true);
@@ -105,8 +105,8 @@ void co_main1(int s) {
 }
 
 void co_main_() {
-//    for ( int i = 0; i < 50000; i++ ) co_main1(i);
-    co_main2();
+    for ( int i = 0; i < 500000; i++ ) co_main1(i);
+//    co_main2();
     GlobalMediator::TerminateGracefully();
 }
 
@@ -115,7 +115,7 @@ void test() {
 
     printf("Init() done...\n");
 
-    globalMediator.addRunnable(std::make_shared<Task>(co_main_));
+    globalMediator.addRunnable(makeRefPtr<Task>(co_main_));
     globalMediator.run();
 }
 

@@ -47,7 +47,7 @@ TaskHandle
 go(Fn&& callback, Args&&... args)
 {
     TaskHandle taskHandle;
-    taskHandle.ptr__ = std::make_shared<Task>(
+    taskHandle.ptr__ = makeRefPtr<Task>(
             std::bind(std::forward<Fn>(callback), std::forward<Args>(args)...)); 
     globalMediator.addRunnable(taskHandle.ptr__);
     return taskHandle;
@@ -58,7 +58,7 @@ TaskHandle
 go_pure(Fn&& callback, Args&&... args)
 {
     TaskHandle taskHandle;
-    taskHandle.ptr__ = std::make_shared<Task>(
+    taskHandle.ptr__ = makeRefPtr<Task>(
             std::bind(std::forward<Fn>(callback), std::forward<Args>(args)...)); 
     taskHandle.ptr__->isPure = true;
     globalMediator.addRunnable(taskHandle.ptr__);
@@ -68,7 +68,7 @@ go_pure(Fn&& callback, Args&&... args)
 class CountDownLatch : public NonCopyable {
 public:
     CountDownLatch()
-        : fakeTask__(std::make_shared<Task>([] () {}, true))
+        : fakeTask__(makeRefPtr<Task>([] () {}, true))
     {}
     void add(int n) {
         counter__ = n;

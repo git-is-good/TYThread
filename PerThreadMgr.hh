@@ -4,6 +4,7 @@
 #include "forward_decl.hh"
 #include "util.hh"
 #include "Blockings.hh"
+#include "Task.hh"
 
 #include <vector>
 
