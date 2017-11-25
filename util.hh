@@ -56,6 +56,10 @@ public:
         : real_ptr__(nullptr)
     {}
 
+    DerivedRefPtr(std::nullptr_t)
+        : real_ptr__(nullptr)
+    {}
+
     /* shared_from_this */
     explicit DerivedRefPtr(Derived *ptr) {
         increase(ptr);
@@ -78,6 +82,11 @@ public:
         real_ptr__ = ptr.real_ptr__;
         return *this;
     }
+    DerivedRefPtr &operator =(std::nullptr_t) {
+        decrease(real_ptr__);
+        real_ptr__ = nullptr;
+        return *this;
+    }
 
     DerivedRefPtr(DerivedRefPtr &&ptr)
         : real_ptr__(ptr.real_ptr__)
@@ -92,17 +101,21 @@ public:
         return *this;
     }
 
-    bool operator==(DerivedRefPtr const &other) {
+    bool operator==(DerivedRefPtr const &other) const {
         return real_ptr__ == other.real_ptr__;
     }
 
-    bool operator==(std::nullptr_t nullptr__) {
-        return real_ptr__ == nullptr__;
+    bool operator==(std::nullptr_t) const {
+        return real_ptr__ == nullptr;
     }
 
     template<class U>
-    bool operator!=(U &&other) {
+    bool operator!=(U &&other) const {
         return !this->operator==(std::forward<U>(other));
+    }
+
+    operator bool() const {
+        return real_ptr__ != nullptr;
     }
 
     Derived &operator*() {
@@ -143,7 +156,7 @@ template<class Derived, class... Args>
 DerivedRefPtr<Derived>
 makeRefPtr(Args&&... args)
 {
-    return std::move(DerivedRefPtr<Derived>(new Derived(args...)));
+    return std::move(DerivedRefPtr<Derived>(new Derived(std::forward<Args>(args)...)));
 }
 
 #endif /* _UTIL_HH_ */
