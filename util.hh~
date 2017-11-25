@@ -86,7 +86,6 @@ public:
     }
 
     DerivedRefPtr &operator =(DerivedRefPtr &&ptr) {
-        decrease(real_ptr__);
         real_ptr__ = ptr.real_ptr__;
         ptr.real_ptr__ = nullptr;
         return *this;
