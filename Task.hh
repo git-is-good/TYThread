@@ -4,6 +4,7 @@
 #include "forward_decl.hh"
 #include "util.hh"
 #include "debug.hh"
+#include "Spinlock.hh"
 
 #include <atomic>
 #include <mutex>
@@ -90,7 +91,9 @@ public:
     /* this vector will be accessed concurrently */
     TaskGroup               *blockedBy = nullptr;
     std::vector<TaskGroup*> groups;
-    std::mutex              mut_;
+//    std::mutex              mut_;
+    Spinlock                mut_;
+
 
     int debugId;
     static std::atomic<int> debugId_counter;

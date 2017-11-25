@@ -65,6 +65,31 @@ go_pure(Fn&& callback, Args&&... args)
     return taskHandle;
 }
 
+class CountDownLatch : public NonCopyable {
+public:
+    CountDownLatch()
+        : fakeTask__(std::make_shared<Task>([] () {}, true))
+    {}
+    void add(int n) {
+        counter__ = n;
+    }
+    void down() {
+        if ( --counter__ == 0 ) {
+            // last one
+            globalMediator.addRunnable(fakeTask__);
+        }
+    }
+    void wait() {
+        TaskGroup fakeGroup__;
+        fakeGroup__
+            .registe(fakeTask__)
+            .wait();
+    }
+private:
+    std::atomic<int>    counter__ = {0};
+    TaskPtr             fakeTask__;
+};
+
 void
 co_init()
 {

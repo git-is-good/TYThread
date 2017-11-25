@@ -120,7 +120,7 @@ Task::continuationOut()
 bool
 Task::addToGroup(TaskGroup *gp)
 {
-    std::lock_guard<std::mutex> _(mut_);
+    std::lock_guard<Spinlock> _(mut_);
 
     DEBUG_PRINT(DEBUG_Task, "Task %d addToGroup %d...", debugId, gp->debugId);
     if ( !isFini() ) {
@@ -135,7 +135,7 @@ Task::addToGroup(TaskGroup *gp)
 void
 Task::terminate()
 {
-    std::lock_guard<std::mutex> _(mut_);
+    std::lock_guard<Spinlock> _(mut_);
     DEBUG_PRINT(DEBUG_Task, "Task %d terminating...", debugId);
     state = Terminated;
 

@@ -37,7 +37,8 @@ public:
     TaskPtr blockedTask;
 //    std::vector<TaskPtr> taskPtrs;
     std::unordered_set<TaskPtr> taskPtrs;
-    std::mutex          mut_;
+//    std::mutex          mut_;
+    Spinlock            mut_;
 
     static std::atomic<int> debugId_counter;
 

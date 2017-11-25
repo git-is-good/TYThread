@@ -21,7 +21,7 @@ TaskGroup::wait()
 {
   bool isRealWait = false;
   {
-      std::lock_guard<std::mutex> _(mut_);
+      std::lock_guard<Spinlock> _(mut_);
       isRealWait = !taskPtrs.empty();
       if ( isRealWait ) {
           DEBUG_PRINT(DEBUG_TaskGroup, "task %d starts GroupWait at TaskGroup %d",
@@ -39,7 +39,7 @@ TaskGroup::wait()
 
 //    bool isRealWait = false;
 //    {
-//        std::lock_guard<std::mutex> _(mut_);
+//        std::lock_guard<Spinlock> _(mut_);
 //        isRealWait = !taskPtrs.empty();
 //        blocked = isRealWait;
 //    }
@@ -59,7 +59,7 @@ TaskGroup::wait()
 //                if ( globalMediator.run_once() ) continue;
 //
 //                // nothing remaining ...
-//                std::unique_lock<std::mutex> lock(co_globalWaitMut);
+//                std::unique_lock<Spinlock> lock(co_globalWaitMut);
 //                co_globalWaitCond.wait_for(lock, std::chrono::milliseconds(Config::Instance().max_wait_task_time));
 //            }
 //        }
@@ -71,7 +71,7 @@ TaskGroup::wait()
 bool
 TaskGroup::resumeIfNothingToWait(TaskPtr &ptr)
 {
-    std::lock_guard<std::mutex> _(mut_);
+    std::lock_guard<Spinlock> _(mut_);
     if ( taskPtrs.empty() ) {
         ptr->state = Task::Runnable;
         return true;
@@ -84,7 +84,7 @@ TaskGroup::resumeIfNothingToWait(TaskPtr &ptr)
 void
 TaskGroup::pushTaskPtr(TaskPtr &&ptr)
 {
-    std::lock_guard<std::mutex> _(mut_);
+    std::lock_guard<Spinlock> _(mut_);
 //    taskPtrs.push_back(std::move(ptr));
     taskPtrs.insert(std::move(ptr));
 }
@@ -106,7 +106,7 @@ TaskGroup::informDone(TaskPtr ptr)
 //    bool canrun = false;
     TaskPtr nowCanRun = nullptr;
     {
-        std::lock_guard<std::mutex> _(mut_);
+        std::lock_guard<Spinlock> _(mut_);
 
         DEBUG_PRINT(DEBUG_TaskGroup, "task %d informDone to TaskGroup %d...", ptr->debugId, debugId);
 //        auto iter = std::find(taskPtrs.begin(), taskPtrs.end(), ptr);

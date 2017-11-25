@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <string>
+#include <atomic>
 
 struct TimeInterval {
     std::chrono::time_point<std::chrono::high_resolution_clock>  start;
@@ -41,16 +42,15 @@ void test() {
 }
 
 /* empty function benchmark */
-void bench1(int size) {
+void bench1_naive(int size) {
     TaskBundle bundle;
 
-    
     int sum = 0;
     {
-        TimeInterval __("bench1:size:" + std::to_string(size));
+        TimeInterval __("bench1_naive:size:" + std::to_string(size));
         for ( int i = 0; i < size; i++ ) {
             bundle.registe(
-                    go_pure([&sum] () {
+                    go([&sum] () {
                         sum ++;
                         })
                     );
@@ -58,7 +58,24 @@ void bench1(int size) {
         bundle.wait();
         printf("%d\n", sum);
     }
+}
 
+void bench1(int size) {
+    CountDownLatch latch;
+    latch.add(size);
+
+    int sum = 0;
+    {
+        TimeInterval __("bench1:size:" + std::to_string(size));
+        for ( int i = 0; i < size; i++ ) {
+            go([&sum, &latch] () {
+                    sum ++;
+                    latch.down();
+                });
+        }
+        latch.wait();
+        printf("%d\n", sum);
+    }
 }
 
 void
