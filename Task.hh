@@ -46,6 +46,7 @@ public:
         : callback(callback)
         , debugId(++debugId_counter)
     {}
+    Task() = default;
     ~Task();
     bool addToGroup(TaskGroup *gp);
     void removeFromGroup(TaskGroup *gp);
@@ -79,6 +80,10 @@ public:
 
     int debugId;
     static std::atomic<int> debugId_counter;
+
+    // memory management
+    static void* operator new(std::size_t sz);
+    static void operator delete(void *p, std::size_t sz);
 };
 
 #endif /* _TASK_HH_ */

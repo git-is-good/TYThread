@@ -43,5 +43,8 @@ enum {
         assert(s);                                  \
     } while (0)
 
+#define CANNOT_REACH_HERE(fmt, ...)                 \
+    MUST_TRUE(0, fmt, ##__VA_ARGS__)
+
 #endif /* _DEBUG_HH_ */
 

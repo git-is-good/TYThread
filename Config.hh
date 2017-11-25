@@ -10,6 +10,10 @@ struct Config : public Singleton {
     /* in milliseconds */
     int max_wait_task_time = 5;
 
+    /* Task pool size */
+    int init_task_pool_size = 1024;
+    int enlarge_rate = 2;
+
     static Config &Instance() {
         static Config conf;
         return conf;

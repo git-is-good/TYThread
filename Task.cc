@@ -87,6 +87,8 @@
 #include "Task.hh"
 #include "debug.hh"
 #include "TaskGroup.hh"
+#include "ObjectPool.hh"
+#include "Config.hh"
 
 #include <mutex>
 #include <array>
@@ -199,4 +201,35 @@ Task::runInStack()
         // TODO: add exception handling
         terminate();
     }
+}
+
+class TaskPool
+    : public ObjectPool<Task>
+    , public Singleton
+{
+public:
+    static TaskPool &Instance() {
+        static TaskPool pool(Config::Instance().init_task_pool_size, Config::Instance().enlarge_rate);
+        return pool;
+    }
+
+private:
+    TaskPool(std::size_t init_task_pool_size, std::size_t enlarge_rate)
+        : ObjectPool<Task>(init_task_pool_size, enlarge_rate)
+    {}
+};
+
+void*
+Task::operator new(std::size_t sz)
+{
+    printf("!!!\n");
+//    return ::operator new(sz);
+    return TaskPool::Instance().alloc();
+}
+
+void
+Task::operator delete(void *ptr, std::size_t)
+{
+//    ::operator delete (ptr);
+    TaskPool::Instance().reclaim(ptr);
 }

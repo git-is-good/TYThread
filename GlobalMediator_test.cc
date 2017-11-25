@@ -105,8 +105,8 @@ void co_main1(int s) {
 }
 
 void co_main_() {
-    for ( int i = 0; i < 50000; i++ ) co_main1(i);
-//    co_main2();
+//    for ( int i = 0; i < 50000; i++ ) co_main1(i);
+    co_main2();
     GlobalMediator::TerminateGracefully();
 }
 

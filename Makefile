@@ -18,4 +18,4 @@ Task_test: Task.cc Task_test.cc TaskGroup.cc
 	$(CC) $(CXXFLAGS) -D_UNIT_TEST_TASK_ -o $@ $^ -lboost_context
 
 clean:
-	rm -rf *~ *.dSYM *.o $(TARGETS)
+	rm -rf *~ *.dSYM *.o a.out $(TARGETS)
