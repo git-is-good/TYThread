@@ -9,6 +9,8 @@
 #include <mutex>
 #include <atomic>
 
+#include <unordered_set>
+
 /* TaskGroup might be accessed by multiple threads
  * through informDone();
  */
@@ -33,7 +35,8 @@ public:
 //    bool    blocked = false;
 
     TaskPtr blockedTask;
-    std::vector<TaskPtr> taskPtrs;
+//    std::vector<TaskPtr> taskPtrs;
+    std::unordered_set<TaskPtr> taskPtrs;
     std::mutex          mut_;
 
     static std::atomic<int> debugId_counter;

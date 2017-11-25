@@ -9,6 +9,8 @@
 #include <set>
 #include <unordered_set>
 #include <vector>
+
+#include "Spinlock.hh"
 #include "debug.hh"
 
 template<class T>
@@ -63,7 +65,7 @@ struct deque_wrapper {
 template<
     class T,
     template<typename> class QueueContainer = deque_wrapper,
-    class LockType = std::mutex>
+    class LockType = Spinlock>
 class BlockingQueue {
 public:
     using container_type = typename QueueContainer<T>::type;
@@ -88,16 +90,16 @@ public:
         container.push_back(std::move(e));
     }
 
-    T dequeue() {
-        std::unique_lock<LockType>     lock(mut_);
-        while ( container.empty() ) {
-            cond_.wait(lock);
-        }
-
-        T res = std::move(container.front());
-        container.pop_front();
-        return std::move(res);
-    }
+//    T dequeue() {
+//        std::unique_lock<LockType>     lock(mut_);
+//        while ( container.empty() ) {
+//            cond_.wait(lock);
+//        }
+//
+//        T res = std::move(container.front());
+//        container.pop_front();
+//        return std::move(res);
+//    }
 
     /* if queue is empty, just return false */
     std::pair<bool, T> try_dequeue() {
@@ -133,7 +135,7 @@ public:
 private:
     container_type              container;
     LockType                    mut_;
-    std::condition_variable     cond_;
+//    std::condition_variable     cond_;
 };
 
 #endif /* _BLOCKINGS_HH_ */

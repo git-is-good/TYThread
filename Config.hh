@@ -8,7 +8,7 @@ struct Config : public Singleton {
     int num_of_threads = 4;
 
     /* in milliseconds */
-    int max_wait_task_time = 500;
+    int max_wait_task_time = 5;
 
     static Config &Instance() {
         static Config conf;

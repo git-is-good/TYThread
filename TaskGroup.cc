@@ -85,7 +85,8 @@ void
 TaskGroup::pushTaskPtr(TaskPtr &&ptr)
 {
     std::lock_guard<std::mutex> _(mut_);
-    taskPtrs.push_back(std::move(ptr));
+//    taskPtrs.push_back(std::move(ptr));
+    taskPtrs.insert(std::move(ptr));
 }
 
 TaskGroup&
@@ -108,7 +109,8 @@ TaskGroup::informDone(TaskPtr ptr)
         std::lock_guard<std::mutex> _(mut_);
 
         DEBUG_PRINT(DEBUG_TaskGroup, "task %d informDone to TaskGroup %d...", ptr->debugId, debugId);
-        auto iter = std::find(taskPtrs.begin(), taskPtrs.end(), ptr);
+//        auto iter = std::find(taskPtrs.begin(), taskPtrs.end(), ptr);
+        auto iter = taskPtrs.find(ptr);
         MUST_TRUE(iter != taskPtrs.end(), "ptr: %d", ptr->debugId);
         taskPtrs.erase(iter);
 //        if ( blocked && taskPtrs.empty() ) {

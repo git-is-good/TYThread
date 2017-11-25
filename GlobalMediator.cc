@@ -93,6 +93,7 @@ bool
 GlobalMediator::run_once()
 {
     PerThreadMgr *mgr = getThisPerThreadMgr();
+    if ( mgr->runInStackPureTask() ) return true;
     if ( mgr->run_runnable() ) return true;
 
     // no runnable, traverse and steal
