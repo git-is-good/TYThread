@@ -64,9 +64,66 @@ struct deque_wrapper {
 
 template<
     class T,
-    template<typename> class QueueContainer = deque_wrapper,
     class LockType = Spinlock>
 class BlockingQueue {
+public:
+    using container_type = std::vector<T>;
+    using value_type = T;
+
+    void enqueue(value_type const &e) {
+        std::lock_guard<LockType>   _(mut_);
+        container.push_back(e);
+    }
+
+    template<class Iterator>
+    void enqueue_by_move(Iterator first, Iterator last) {
+        std::lock_guard<LockType>   _(mut_);
+        while ( first != last ) {
+            container.push_back(std::move(*first));
+            ++first;
+        }
+    }
+
+    std::pair<bool, T> try_dequeue() {
+        std::lock_guard<LockType>     _(mut_);
+        if ( container.empty() ) {
+            return std::make_pair(false, T{});
+        } else {
+            T res = std::move(container.back());
+            container.pop_back();
+            return std::make_pair(true, std::move(res));
+        }
+    }
+
+    std::pair<bool, std::vector<T>> try_dequeue_half() {
+        std::lock_guard<LockType>       _(mut_);
+        DEBUG_PRINT(DEBUG_Blockings,
+                "original size: %lu", container.size());
+        if ( container.empty() ) {
+            return std::make_pair(false, std::vector<T>{});
+        } else {
+            std::size_t sz = (container.size() + 1) / 2;
+            std::size_t remain_sz = container.size() - sz;
+            std::vector<T> res(sz);
+            for ( size_t i = remain_sz; i < container.size(); i++ ) {
+                res[i - remain_sz] = std::move(container[i]);
+            }
+            container.resize(remain_sz);
+            DEBUG_PRINT(DEBUG_Blockings,
+                    "after size: %lu, vec size: %lu, sz: %lu", container.size(), res.size(), sz);
+            return std::make_pair(true, std::move(res));
+        }
+    }
+private:
+    container_type              container;
+    LockType                    mut_;
+};
+
+template<
+    class T,
+    template<typename> class QueueContainer = deque_wrapper,
+    class LockType = Spinlock>
+class BlockingQueue__ {
 public:
     using container_type = typename QueueContainer<T>::type;
     using value_type = T;

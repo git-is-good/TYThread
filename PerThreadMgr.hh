@@ -9,7 +9,7 @@
 
 class PerThreadMgr : public NonCopyable {
 public:
-    void addRunnable(TaskPtr ptr) {
+    void addRunnable(TaskPtr &ptr) {
         runnable_queue.enqueue(ptr);
     }
     bool run_runnable();
@@ -37,7 +37,7 @@ public:
     }
 
     /* for debug */
-    TaskPtr currentTask() { return currentTask__; }
+    TaskPtr &currentTask() { return currentTask__; }
 //private:
     BlockingQueue<TaskPtr>  runnable_queue;
 

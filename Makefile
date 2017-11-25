@@ -1,5 +1,7 @@
 CC := clang++
-CXXFLAGS := --std=c++14 -g -O3
+INCLUDEPATH := -I/usr/local/include
+LIBPATH := -L/usr/local/lib
+CXXFLAGS := $(INCLUDEPATH) $(LIBPATH) --std=c++14 -g -O2
 
 TARGETS := PerThreadMgr_test Task_test GlobalMediator_test user_test
 

@@ -13,24 +13,6 @@
 #include <vector>
 #include <boost/context/all.hpp>
 
-
-#if defined _UNIT_TEST_TASK_
-
-#undef co_currentTask
-extern TaskPtr bigTestTask;
-#define co_currentTask bigTestTask
-
-#elif defined _UNIT_TEST_PER_THREAD_MGR_
-
-#undef co_currentTask
-#include "PerThreadMgr.hh"
-#define co_currentTask globalTaskMgr.currentTask()
-
-#else /* in a normal setting */
-
-
-#endif 
-
 class Task 
     : public std::enable_shared_from_this<Task>,
       public NonCopyable

@@ -31,7 +31,7 @@ public:
     bool run_once();
     void run();
 
-    TaskPtr currentTask() {
+    TaskPtr &currentTask() {
         return getThisPerThreadMgr()->currentTask__;
     }
 

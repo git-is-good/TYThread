@@ -53,7 +53,7 @@ void
 GlobalMediator::yieldRequest()
 {
     if ( inCoroutine() ) {
-        TaskPtr ptr = currentTask();
+        TaskPtr &ptr = currentTask();
         DEBUG_PRINT(DEBUG_GlobalMediator, "Thread %d: Task %d inCoroutine yield with state %s",
                 thread_id, ptr->debugId, Task::getStateName(ptr->state));
 //        if ( ptr->state == Task::GroupWait ) {
@@ -111,7 +111,7 @@ GlobalMediator::run_once()
         }
 
         // steal succeeded
-        DEBUG_PRINT(DEBUG_GlobalMediator, "Thread %d: stole from %d %lu tasks",
+        DEBUG_PRINT(DEBUG_Special | DEBUG_GlobalMediator, "Thread %d: stole from %d %lu tasks",
                 thread_id, i, pair.second.size());
         mgr->runnable_queue.enqueue_by_move(pair.second.begin(), pair.second.end());
         stealSuccess = true;
