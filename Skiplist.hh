@@ -151,7 +151,8 @@ public:
                 MUST_TRUE(cur_k != nullptr, "");
 
                 /* how many next layer nodes to give away */
-                int toGiveAwayNextLayer = toGiveAwayCurLayer * SkipGap - layers[i].head_off % SkipGap;
+                int toGiveAwayNextLayer = toGiveAwayCurLayer * SkipGap - 
+                    (i != 0 ? layers[i - 1].head_off : head_off) % SkipGap;
 
                 res->layers[i].headNode = std::move(layers[i].headNode);
                 layers[i].headNode = std::move(cur_k);

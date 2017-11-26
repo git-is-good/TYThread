@@ -18,6 +18,39 @@ struct Rinbow
 
 using RinbowPtr = DerivedRefPtr<Rinbow>;
 
+void test3() {
+    Skiplist<Rinbow> skiplist;
+    constexpr int total = 3273;
+
+    for ( int i = 0; i < total; i++ ) {
+        RinbowPtr ptr = makeRefPtr<Rinbow>("multiColor", i);
+        skiplist.enqueue(ptr);
+        assert(ptr != nullptr);
+    }
+
+    constexpr int nlist = 3;
+    std::unique_ptr<Skiplist<Rinbow>> listptr[nlist];
+
+    for ( int i = 0; i < nlist; i++ ) {
+        listptr[i] = skiplist.dequeue_half();
+    }
+
+    for ( int i = 0; i < nlist; i++ ) {
+        RinbowPtr ptr;
+        while ( (ptr = listptr[i]->dequeue()) != nullptr ) {
+            printf("when=%d\n", ptr->when);
+        }
+    }
+
+    {
+//        RinbowPtr ptr;
+//        while ( (ptr = skiplist.dequeue()) != nullptr ) {
+//            printf("when=%d\n", ptr->when);
+//        }
+    }
+
+}
+
 void test2() {
     Skiplist<Rinbow> skiplist;
     constexpr int total = 128;
@@ -85,5 +118,6 @@ void test() {
 int main() {
 //    for ( long i = 0; i < 100000000; ++i ) test();
 //    test();
-    test2();
+//    test2();
+    for ( long i = 0; i < 10000000; i++ ) test3();
 }
