@@ -123,7 +123,7 @@ template<
     class T,
     template<typename> class QueueContainer = deque_wrapper,
     class LockType = Spinlock>
-class BlockingQueue__ {
+class BlockingQueue_ {
 public:
     using container_type = typename QueueContainer<T>::type;
     using value_type = T;

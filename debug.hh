@@ -35,6 +35,11 @@ enum {
         }                                           \
     } while (0)
 
+/* turn off only for release */
+#define __MUST__TRUE__ON__
+
+#ifdef __MUST__TRUE__ON__
+
 #define MUST_TRUE(s, fmt, ...)                      \
     do {                                            \
         if ( s ) break;                             \
@@ -42,6 +47,14 @@ enum {
                 ##__VA_ARGS__);                     \
         assert(s);                                  \
     } while (0)
+
+#else /* __MUST__TRUE__ON__ off */
+
+#define MUST_TRUE(...)
+
+#endif /* __MUST__TRUE__ON__ */
+
+
 
 #define CANNOT_REACH_HERE(fmt, ...)                 \
     MUST_TRUE(0, fmt, ##__VA_ARGS__)

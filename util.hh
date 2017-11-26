@@ -132,13 +132,18 @@ public:
         return real_ptr__;
     }
 
+    /* only for implementing data structure,
+     * where shared pointer semantics is maintained
+     * by programmer */
     Derived *get() {
         return real_ptr__;
     }
     Derived const  *get() const {
         return real_ptr__;
     }
-private:
+    void set(Derived *ptr) {
+        real_ptr__ = ptr;
+    }
     static void decrease(Derived *ptr) {
         if ( ptr && --ptr->counter__ == 0 ) {
             delete ptr;
@@ -149,6 +154,8 @@ private:
             ++ptr->counter__;
         }
     }
+
+private:
     Derived     *real_ptr__;
 };
 

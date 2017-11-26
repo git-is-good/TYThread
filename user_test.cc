@@ -5,18 +5,23 @@
 #include <string>
 #include <atomic>
 
+constexpr int N = 5000000;
+
 struct TimeInterval {
     std::chrono::time_point<std::chrono::high_resolution_clock>  start;
     std::string message;
-    explicit TimeInterval(std::string const &message = "unknown")
+    int nops;
+    explicit TimeInterval(std::string const &message = "unknown", int nops = N )
         : message(message)
-        , start(std::chrono::high_resolution_clock::now())
-    {}
+        , nops(nops)
+    {
+        start = std::chrono::high_resolution_clock::now();
+    }
     ~TimeInterval() {
-        printf("<%s> duration: %lfms\n", message.c_str(), 
-                std::chrono::duration<double, std::milli>(
-                    std::chrono::high_resolution_clock::now() - start
-                    ).count()
+        auto period = std::chrono::high_resolution_clock::now() - start;
+        printf("<%s> duration: %lfms, %lf ns/op\n", message.c_str(), 
+                std::chrono::duration<double, std::milli>(period).count(),
+                (double)std::chrono::duration_cast<std::chrono::nanoseconds>(period).count() / nops
               );
     }
 };
@@ -60,14 +65,14 @@ void bench1_naive(int size) {
     }
 }
 
-void bench1(int size) {
+void bench1(long size) {
     CountDownLatch latch;
     latch.add(size);
 
     int sum = 0;
     {
-        TimeInterval __("bench1:size:" + std::to_string(size));
-        for ( int i = 0; i < size; i++ ) {
+        TimeInterval __("bench1:size:" + std::to_string(size), size);
+        for ( long i = 0; i < size; i++ ) {
             go([&sum, &latch] () {
                     sum ++;
                     latch.down();
@@ -75,6 +80,29 @@ void bench1(int size) {
         }
         latch.wait();
         printf("%d\n", sum);
+    }
+}
+
+
+void
+bench2(int coro)
+{
+    CountDownLatch latch;
+    latch.add(coro);
+    {
+        TimeInterval __("bench2:size:" + std::to_string(coro) + ":N:" + std::to_string(N));
+
+        for ( int i = 0; i < coro; ++i ) {
+            go( [i, coro, &latch] () {
+                for ( int j = 0; j < N / coro; ++j ) {
+//                    printf("id %d turn %d\n", i, j);
+                    co_yield;
+                }
+                latch.down();
+            });
+        }
+
+        latch.wait();
     }
 }
 
@@ -94,10 +122,10 @@ setup(std::function<void()> co_main)
 int
 main()
 {
+//    setup(std::bind(bench2, 10000));
     setup(std::bind(bench1, 1000000));
 //    {
 //        TimeInterval("hell");
 //    }
-    printf("%lu\n", sizeof(Task));
     printf("done...\n");
 }

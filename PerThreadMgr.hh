@@ -15,7 +15,7 @@ public:
     }
     bool run_runnable();
 
-    bool runInStackPureTask();
+    bool runInStackPureTask(TaskPtr &poped);
 
     // stealing is done in GlobalMediator
 

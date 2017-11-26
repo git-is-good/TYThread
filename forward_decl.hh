@@ -1,7 +1,7 @@
 #ifndef _FORWARD_DECL_HH_
 #define _FORWARD_DECL_HH_
 
-#include <memory>
+//#include <memory>
 
 class TaskGroup;
 

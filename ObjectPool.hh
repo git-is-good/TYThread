@@ -10,15 +10,22 @@
 #include <array>
 #include <mutex>
 
+//#define DEBUG_OBJECT_POOL__
 
-//#include <stdio.h>
-//#define DEBUG_PRINT_LOCAL(fmt, ...) \
-//    fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+#ifdef DEBUG_OBJECT_POOL__
+
+#include <stdio.h>
+#define DEBUG_PRINT_LOCAL(fmt, ...) \
+    fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+
+#else
 
 #define DEBUG_PRINT_LOCAL(fmt, ...)
 
+#endif /* DEBUG_OBJECT_POOL__ */
 
-template<class T, class LockType = Spinlock>
+
+template<class T>
 class ObjectLayer : public NonCopyable {
 public:
     enum {
@@ -59,7 +66,6 @@ public:
     }
 
     void *alloc() {
-        std::lock_guard<LockType> _(mut_);
         if ( !head ) return nullptr;
 
         void *res = head;
@@ -73,7 +79,6 @@ public:
 
     /* return isEmpty after reclaim */
     int reclaim(void *ptr) {
-        std::lock_guard<LockType> _(mut_);
         if ( !ptr ) {
             DEBUG_PRINT_LOCAL("reclaim nullptr...");
             return used == 0 ? NotInUseAfter : StillInUseAfter;
@@ -100,7 +105,6 @@ private:
     /* in number-of-object, NOT byte */
     std::size_t     arena_cap;
     std::size_t     used;
-    LockType        mut_;
 };
 
 template<class T, class LockType = Spinlock>
@@ -124,6 +128,9 @@ public:
         }
 
         // all layers are full 
+        // maximal layer size is fixed to 32, it's practically impossible to exceed
+        MUST_TRUE(current_layer + 1 < layers.size(),
+                "ObjectPool exceeds its maximal layer: %lu", layers.size());
         current_size *= enlarge_rate;
         layers[++current_layer] = std::make_unique<ObjectLayer<T>>(current_size);
         res = layers[current_layer]->alloc();

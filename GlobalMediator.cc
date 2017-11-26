@@ -67,8 +67,9 @@ GlobalMediator::yieldRequest()
 
         DEBUG_PRINT(DEBUG_GlobalMediator, "Thread %d: Task %d runInStackPureTask() after yield inCoroutine",
                 thread_id, ptr->debugId);
-        while ( mgr->runInStackPureTask() )
-            ;
+        //TODO: how to reduce enqueue/dequeue
+//        while ( mgr->runInStackPureTask() )
+//            ;
 
         ptr->continuationOut();
     } else {
@@ -93,7 +94,8 @@ bool
 GlobalMediator::run_once()
 {
     PerThreadMgr *mgr = getThisPerThreadMgr();
-    if ( mgr->runInStackPureTask() ) return true;
+    //TODO: how to ....
+//    if ( mgr->runInStackPureTask() ) return true;
     if ( mgr->run_runnable() ) return true;
 
     // no runnable, traverse and steal
