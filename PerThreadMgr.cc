@@ -15,10 +15,13 @@ PerThreadMgr globalTaskMgr;
 bool
 PerThreadMgr::runInStackPureTask(TaskPtr &poped)
 {
-    auto res_pair = runnable_queue.try_dequeue();
+//    auto res_pair = runnable_queue->try_dequeue();
+    TaskPtr ptr = runnable_queue->dequeue();
+
     //TODO: check hasEnoughStack()
-    if ( res_pair.first ) {
-        TaskPtr ptr = std::move(res_pair.second);
+//    if ( res_pair.first ) {
+      if ( ptr ) {
+//        TaskPtr ptr = std::move(res_pair.second);
         if ( ptr->isPure ) {
             DEBUG_PRINT(DEBUG_PerThreadMgr,
                     "PerThreadMgr %d: about to run in-stack task %d...", debugId, ptr->debugId);
@@ -31,7 +34,7 @@ PerThreadMgr::runInStackPureTask(TaskPtr &poped)
         } else {
             DEBUG_PRINT(DEBUG_PerThreadMgr,
                     "PerThreadMgr %d: Task %d not pure, cannot in stack...", debugId, ptr->debugId);
-//            runnable_queue.enqueue(ptr);
+//            runnable_queue->enqueue(ptr);
             poped = std::move(ptr);
             return false;
         }
@@ -45,10 +48,12 @@ PerThreadMgr::runInStackPureTask(TaskPtr &poped)
 bool
 PerThreadMgr::run_runnable()
 {
-    auto res_pair = runnable_queue.try_dequeue();
-    if ( res_pair.first ) {
+    TaskPtr ptr = runnable_queue->dequeue();
+//    auto res_pair = runnable_queue->try_dequeue();
+//    if ( res_pair.first ) {
+    if ( ptr ) {
         // runnable found
-        TaskPtr ptr = std::move(res_pair.second);
+//        TaskPtr ptr = std::move(res_pair.second);
         DEBUG_PRINT(DEBUG_PerThreadMgr,
                 "PerThreadMgr %d: runnable got locally: task %d...", debugId, ptr->debugId);
 
@@ -60,7 +65,7 @@ PerThreadMgr::run_runnable()
 
         switch ( ptr->state ) {
         case Task::Runnable:
-            runnable_queue.enqueue(ptr);
+            runnable_queue->enqueue(ptr);
             break;
         case Task::MPIBlocked:
             mpi_blocked_queue.push_back(ptr);
@@ -71,7 +76,7 @@ PerThreadMgr::run_runnable()
                     ptr->debugId, ptr->blockedBy->debugId);
 
             if ( ptr->blockedBy->resumeIfNothingToWait(ptr) ) {
-                runnable_queue.enqueue(ptr);
+                runnable_queue->enqueue(ptr);
             }
             break;
         default:
@@ -93,7 +98,7 @@ PerThreadMgr::run_mpi_blocked()
         if ( ptr->state == Task::Runnable ) {
             DEBUG_PRINT(DEBUG_PerThreadMgr,
                     "PerThreadMgr %d: MPIBlocked task %d runnable", debugId, ptr->debugId);
-            runnable_queue.enqueue(ptr);
+            runnable_queue->enqueue(ptr);
             currentTask__ = ptr;
             return true;
         }

@@ -216,14 +216,14 @@ private:
 void*
 Task::operator new(std::size_t sz)
 {
-//    return ::operator new(sz);
-    MUST_TRUE(sz == sizeof(Task), "Task new operator only for Task object");
-    return TaskPool::Instance().alloc();
+    return ::operator new(sz);
+//    MUST_TRUE(sz == sizeof(Task), "Task new operator only for Task object");
+//    return TaskPool::Instance().alloc();
 }
 
 void
 Task::operator delete(void *ptr, std::size_t)
 {
-//    ::operator delete (ptr);
-    TaskPool::Instance().reclaim(ptr);
+    ::operator delete (ptr);
+//    TaskPool::Instance().reclaim(ptr);
 }

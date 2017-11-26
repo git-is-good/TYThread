@@ -117,7 +117,8 @@ void test() {
 
 int main() {
 //    for ( long i = 0; i < 100000000; ++i ) test();
-//    test();
-//    test2();
-    for ( long i = 0; i < 10000000; i++ ) test3();
+    test();
+    test2();
+//    for ( long i = 0; i < 10000000; i++ ) test3();
+    test3();
 }

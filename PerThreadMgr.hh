@@ -3,15 +3,17 @@
 
 #include "forward_decl.hh"
 #include "util.hh"
-#include "Blockings.hh"
+//#include "Blockings.hh"
 #include "Task.hh"
+#include "Skiplist.hh"
 
 #include <vector>
+#include <memory>
 
 class PerThreadMgr : public NonCopyable {
 public:
     void addRunnable(TaskPtr &ptr) {
-        runnable_queue.enqueue(ptr);
+        runnable_queue->enqueue(ptr);
     }
     bool run_runnable();
 
@@ -40,7 +42,8 @@ public:
     /* for debug */
     TaskPtr &currentTask() { return currentTask__; }
 //private:
-    BlockingQueue<TaskPtr>  runnable_queue;
+//    BlockingQueue<TaskPtr>  runnable_queue;
+    std::unique_ptr<Skiplist<Task>> runnable_queue = std::make_unique<Skiplist<Task>>();
 
     std::vector<TaskPtr>    mpi_blocked_queue;
 

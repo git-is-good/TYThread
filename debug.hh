@@ -20,6 +20,7 @@ enum {
 
 };
 
+//#define current_debeg_setting DEBUG_Task
 //#define current_debeg_setting (DEBUG_Task | DEBUG_TaskGroup | DEBUG_PerThreadMgr | DEBUG_GlobalMediator) 
 #define current_debeg_setting 0
 //#define current_debeg_setting (DEBUG_Special)

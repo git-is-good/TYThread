@@ -5,6 +5,7 @@
 #include "util.hh"
 #include "debug.hh"
 #include "Spinlock.hh"
+#include "Skiplist.hh"
 
 #include <atomic>
 #include <mutex>
@@ -15,6 +16,7 @@
 
 class Task 
     : public RefCounted
+    , public Linkable<Task>
 {
 public:
     enum {

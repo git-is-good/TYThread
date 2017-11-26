@@ -4,6 +4,7 @@
 #include "Config.hh"
 #include "debug.hh"
 #include "util.hh"
+#include "Skiplist.hh"
 
 #include <thread>
 #include <mutex>
@@ -106,16 +107,20 @@ GlobalMediator::run_once()
             continue;
         }
 
-        auto pair = threadLocalInfos[i]->pmgr.runnable_queue.try_dequeue_half();
-        if ( !pair.first ) {
+//        auto pair = threadLocalInfos[i]->pmgr.runnable_queue->try_dequeue_half();
+        auto skiplistptr = threadLocalInfos[i]->pmgr.runnable_queue->dequeue_half();
+        if ( !skiplistptr ) {
+//        if ( !pair.first ) {
             // nothing there
             continue;
         }
 
         // steal succeeded
         DEBUG_PRINT(DEBUG_Special | DEBUG_GlobalMediator, "Thread %d: stole from %d %lu tasks",
-                thread_id, i, pair.second.size());
-        mgr->runnable_queue.enqueue_by_move(pair.second.begin(), pair.second.end());
+                thread_id, i, skiplistptr->size());
+//                thread_id, i, pair.second.size());
+//        mgr->runnable_queue->enqueue_by_move(pair.second.begin(), pair.second.end());
+        mgr->runnable_queue = std::move(skiplistptr);
         stealSuccess = true;
         break;
     }
