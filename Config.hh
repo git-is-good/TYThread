@@ -8,7 +8,7 @@ struct Config : public Singleton {
     int num_of_threads = 3;
 
     /* in milliseconds */
-    int max_wait_task_time = 50;
+    int max_wait_task_time = 5;
 
     /* Task pool size */
     int init_task_pool_size = 1024;
