@@ -20,7 +20,7 @@ using RinbowPtr = DerivedRefPtr<Rinbow>;
 
 void test3() {
     Skiplist<Rinbow> skiplist;
-    constexpr int total = 3273;
+    constexpr int total = 69819;
 
     for ( int i = 0; i < total; i++ ) {
         RinbowPtr ptr = makeRefPtr<Rinbow>("multiColor", i);
@@ -33,12 +33,14 @@ void test3() {
 
     for ( int i = 0; i < nlist; i++ ) {
         listptr[i] = skiplist.dequeue_half();
+        printf("ok %d...\n", i);
     }
+
 
     for ( int i = 0; i < nlist; i++ ) {
         RinbowPtr ptr;
         while ( (ptr = listptr[i]->dequeue()) != nullptr ) {
-            printf("when=%d\n", ptr->when);
+//            printf("when=%d\n", ptr->when);
         }
     }
 
@@ -117,8 +119,8 @@ void test() {
 
 int main() {
 //    for ( long i = 0; i < 100000000; ++i ) test();
-    test();
-    test2();
+//    test();
+//    test2();
 //    for ( long i = 0; i < 10000000; i++ ) test3();
     test3();
 }

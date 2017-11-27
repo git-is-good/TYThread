@@ -11,7 +11,7 @@
 #include <utility>
 #include <type_traits>
 
-#define DEBUG_SKIPLIST__
+//#define DEBUG_SKIPLIST__
 
 #ifdef DEBUG_SKIPLIST__
 
@@ -43,7 +43,10 @@ private:
     Derived     *next;
 };
 
-template<class T, int SkipGap = 4, class LockType = Spinlock>
+#define ROUND_DOWN_IF_NOT_MULLIPLE(n, base) \
+    ((n) % (base) == 0 ? -1 : (n) - (n) % (base))
+
+template<class T, int SkipGap = 1024, class LockType = Spinlock>
 class Skiplist : public NonCopyable {
 public:
     using ref_ptr_type = DerivedRefPtr<T>;
@@ -86,6 +89,8 @@ public:
         T *t = head;
         head = head->next;
 
+        /* defensive */
+        t->next = nullptr;
         DerivedRefPtr<T> res;
         res.set(t);
 
@@ -94,7 +99,7 @@ public:
         }
         // this SkipNode is no longer full
         if ( ++head_off % SkipGap == 1 && layers[0].headNode ) {
-//            MUST_TRUE((void*)layers[0].headNode->downNode == t, "");
+            MUST_TRUE((void*)layers[0].headNode->downNode == t, "");
 
             DEBUG_PRINT_LOCAL("head node in layers[0] will be deleted:"
                     "head_off:%d,tail_off:%d", head_off, tail_off);
@@ -111,7 +116,7 @@ public:
                 thisLayer->headNode = std::move(thisLayer->headNode->nextNode);
                 if ( ++thisLayer->head_off % SkipGap == 1 &&
                         i + 1 < layers.size() && layers[i + 1].headNode ) {
-//                    MUST_TRUE(layers[i + 1].headNode->downNode == oldHead, "");
+                    MUST_TRUE(layers[i + 1].headNode->downNode == oldHead, "");
                     DEBUG_PRINT_LOCAL("head node in layers[%d] will be deleted:"
                             "head_off:%d,tail_off:%d", i + 1, thisLayer->head_off, thisLayer->tail_off);
                     continue;
@@ -139,8 +144,17 @@ public:
     }
 
     std::unique_ptr<Skiplist<T>> dequeue_half() {
+        enum {
+            UpperCleanuped,
+            SingleNodePreserved,
+            Normal,
+        };
         std::lock_guard<LockType>   _(mut_);
         int layerToSplit = layers.size();
+        int upperState = Normal;
+        void *thatDownNode = nullptr;
+        std::unique_ptr<Skiplist> res;
+
         while ( --layerToSplit >= 0 ) {
             int sz = layers[layerToSplit].tail_off - layers[layerToSplit].head_off;
             if ( sz > 1 ) {
@@ -148,23 +162,61 @@ public:
                 break;
             } else if ( sz == 1 ) {
                 /* this non-empty layer is useless */
-                DEBUG_PRINT_LOCAL("a non-empty layer %d cleanuped", layerToSplit);
-                layers[layerToSplit].cleanup();
+
+                /* tricky situation, cannot simply delete this node:
+                 *
+                 *  |---------------------------------|
+                 *  |   *       *       *       *     |
+                 *  |   |       |       |       |     |
+                 *  |   ****    ****    ****    ****  |  ****    ****    ****
+                 *  |---------------------------------|
+                 *  
+                 *  If in this case, the whole node shoule be gived away
+                 *  In other cases, we can delete this node
+                 */
+                
+                void *downHead = layerToSplit == 0 ? (void*)head : (void*)layers[layerToSplit - 1].headNode.get();
+                int nextCount;
+                if ( layerToSplit == 0 ) {
+                    nextCount = tail_off - head_off;
+                } else {
+                    nextCount = layers[layerToSplit - 1].tail_off - layers[layerToSplit - 1].head_off;
+                }
+                if ( layers[layerToSplit].headNode->downNode == downHead && nextCount == 2 * SkipGap - 1 ) {
+                    DEBUG_PRINT_LOCAL("a single-noded layer %d, SingleNodePreserved", layerToSplit);
+                    /* handle the case above */
+                    res = std::make_unique<Skiplist>();
+                    res->layers[layerToSplit] = std::move(layers[layerToSplit]);
+                    upperState = SingleNodePreserved;
+                } else {
+                    DEBUG_PRINT_LOCAL("a single-noded layer %d, UpperCleanuped", layerToSplit);
+                    thatDownNode = layers[layerToSplit].headNode->downNode;
+                    layers[layerToSplit].cleanup();
+                    upperState = UpperCleanuped;
+                }
             }
         }
 
         if ( layerToSplit >= 0 ) {
             DEBUG_PRINT_LOCAL("layerToSplit found: %d", layerToSplit);
 
-            std::unique_ptr<Skiplist> res = std::make_unique<Skiplist>();
+            if ( !res ) {
+                res = std::make_unique<Skiplist>();
+            }
 
             Layer *thisLayer = &layers[layerToSplit];
             int toGiveAway = (thisLayer->tail_off - thisLayer->head_off + 1) / 2;
                 
-            //FIXME: candidate will change!
-            if ( thisLayer->candidate ) {
-                int candpos = thisLayer->tail_off - (thisLayer->tail_off % SkipGap);
-                if ( thisLayer->head_off <= candpos && thisLayer->head_off + toGiveAway > candpos ) {
+            if ( upperState == UpperCleanuped ) {
+                DEBUG_PRINT_LOCAL("!!!");
+                res->layers[layerToSplit].candidate = reinterpret_cast<SkipNode*>(thatDownNode);
+            } else if ( upperState == Normal ) {
+                int candpos = ROUND_DOWN_IF_NOT_MULLIPLE(thisLayer->tail_off, SkipGap);
+                if ( candpos == -1 ) {
+                    MUST_TRUE(thisLayer->candidate == nullptr, "thisLayer->tail_off:%d", thisLayer->tail_off);
+                }
+                if ( candpos != -1 && thisLayer->head_off <= candpos &&
+                        thisLayer->head_off + toGiveAway > candpos ) {
                     // candidate is stolen
                     res->layers[layerToSplit].candidate = thisLayer->candidate;
                     thisLayer->candidate = nullptr;
@@ -202,6 +254,12 @@ public:
                 layers[i].head_off = res->layers[i].tail_off;
                 /* layers[i].tail_off no change */
 
+                DEBUG_PRINT_LOCAL("res->layers[%d].head_off:%d,tail_off:%d",
+                        i, res->layers[i].head_off, res->layers[i].tail_off);
+
+                DEBUG_PRINT_LOCAL("layers[%d].head_off:%d,tail_off:%d",
+                        i, layers[i].head_off, layers[i].tail_off);
+
                 cur = static_cast<SkipNode*>(cur->lastDownNode);
                 toGiveAwayCurLayer = toGiveAwayNextLayer;
             }
@@ -218,50 +276,69 @@ public:
             res->head_off = head_off;
             res->tail_off = head_off + toGiveAwayCurLayer;
             head_off = res->tail_off;
+
+            DEBUG_PRINT_LOCAL("final: res->head_off:%d,res->tail_off:%d",
+                    res->head_off, res->tail_off);
+
+            DEBUG_PRINT_LOCAL("final: head_off:%d,tail_off:%d",
+                    head_off, tail_off);
+
             return std::move(res);
         } else {
             /* split the raw data */
 
             int toGiveAway = (tail_off - head_off + 1) / 2;
             if ( toGiveAway == 0 ) {
+                MUST_TRUE(res == nullptr, "");
                 DEBUG_PRINT_LOCAL("Nothing to give away");
                 return nullptr;
             }
 
-            std::unique_ptr<Skiplist> res = std::make_unique<Skiplist>();
-            DEBUG_PRINT_LOCAL("Give away raw data: toGiveAway:%d", toGiveAway);
-            T* lastToGiveAway = head;
-            for ( int i = 0; i < toGiveAway - 1; i++ ) {
-                lastToGiveAway = lastToGiveAway->next;
+            if ( !res ) {
+                res = std::make_unique<Skiplist>();
             }
 
-            //FIXME: candidate of the first
-            if ( candidate ) {
-                int candpos = tail_off - (tail_off % SkipGap);
-                if ( head_off <= candpos && head_off + toGiveAway > candpos ) {
+            if ( upperState == UpperCleanuped ) {
+                res->candidate = reinterpret_cast<T*>(thatDownNode);
+            } else if ( upperState == Normal ) {
+                int candpos = ROUND_DOWN_IF_NOT_MULLIPLE(tail_off, SkipGap);
+                if ( candpos != -1 && head_off <= candpos && head_off + toGiveAway > candpos ) {
                     // candidate is stolen
                     res->candidate = candidate;
                     candidate = nullptr;
                 }
             }
 
+            DEBUG_PRINT_LOCAL("Give away raw data: toGiveAway:%d,head_off:%d,tail_off:%d", toGiveAway, head_off, tail_off);
+            T* lastToGiveAway = head;
+            for ( int i = 0; i < toGiveAway - 1; i++ ) {
+                lastToGiveAway = lastToGiveAway->next;
+            }
+
             res->head = head;
             head = lastToGiveAway->next;
+            lastToGiveAway->next = nullptr;
 
             res->tail = lastToGiveAway;
             res->head_off = head_off;
             res->tail_off = head_off + toGiveAway;
-            head_off = tail_off - (tail_off - head_off - toGiveAway);
+            head_off = res->tail_off;
+
+            DEBUG_PRINT_LOCAL("split raw data: res->head_off:%d,res->tail_off:%d",
+                    res->head_off, res->tail_off);
+
+            DEBUG_PRINT_LOCAL("split raw data: head_off:%d,tail_off:%d",
+                    head_off, tail_off);
             return std::move(res);
         }
     }
 
     ~Skiplist() {
         if ( head ) {
-            MUST_TRUE(tail_off > head_off, "head_off:%d,tail_off:%d", head_off, tail_off);
+            MUST_TRUE(tail && tail_off > head_off, "tail:%p,head_off:%d,tail_off:%d", tail, head_off, tail_off);
             DEBUG_PRINT_LOCAL("Destructor of Skiplist called when head_off:%d,tail_off:%d",
                    head_off, tail_off);
-            while ( head != tail ) {
+            while ( head != nullptr ) {
                 ref_ptr_type::decrease(head);
                 head = head->next;
             }
@@ -298,7 +375,7 @@ private:
                     thisLayer->tailNode->nextNode = std::make_unique<SkipNode>();
                     thisLayer->tailNode = thisLayer->tailNode->nextNode.get();
                 }
-//                thisLayer->tailNode->downNode = cur;
+                thisLayer->tailNode->downNode = cur;
                 thisLayer->tailNode->lastDownNode = last;
                 ++thisLayer->tail_off;
                 if ( thisLayer->candidate && thisLayer->tail_off % SkipGap == 0 ) {
@@ -329,7 +406,7 @@ private:
     }
         
     struct SkipNode {
-//        void *downNode = nullptr;
+        void *downNode = nullptr;
         void *lastDownNode = nullptr;
         std::unique_ptr<SkipNode> nextNode;
     };
@@ -346,7 +423,32 @@ private:
             tailNode = nullptr;
             candidate = nullptr;
         }
+
+        Layer() = default;
+
+        Layer(Layer &&other) {
+            _handleMove(std::move(other));
+        }
+
+        Layer &operator=(Layer &&other) {
+            _handleMove(std::move(other));
+
+            return *this;
+        }
+
+        void _handleMove(Layer &&other) {
+            head_off = other.head_off;
+            tail_off = other.tail_off;
+
+            other.head_off = other.tail_off;
+            headNode = std::move(other.headNode);
+            tailNode = other.tailNode;
+            candidate = other.candidate;
+
+            other.tailNode = other.candidate = nullptr;
+        }
     };
+
     /* 64 ^ 5 = 2 ^ 30, practically enough */
     std::array<Layer, 5> layers;
     T *head = nullptr;
