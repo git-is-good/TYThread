@@ -38,15 +38,59 @@ protected:
     {}
 
 private:
-    template<class T, int SkipGap, class LockType>
+    template<class T, class LockType, int SkipGap, int NLayers>
     friend class Skiplist;
     Derived     *next;
+};
+
+struct SkipNode {
+    void *downNode = nullptr;
+    void *lastDownNode = nullptr;
+    std::unique_ptr<SkipNode> nextNode;
+};
+struct Layer {
+    int head_off = 0;
+    int tail_off = 0;
+    std::unique_ptr<SkipNode> headNode;
+    SkipNode *tailNode = nullptr;
+    SkipNode *candidate = nullptr;
+
+    void cleanup() {
+        head_off = tail_off;
+        headNode = nullptr;
+        tailNode = nullptr;
+        candidate = nullptr;
+    }
+
+    Layer() = default;
+
+    Layer(Layer &&other) {
+        _handleMove(std::move(other));
+    }
+
+    Layer &operator=(Layer &&other) {
+        _handleMove(std::move(other));
+
+        return *this;
+    }
+
+    void _handleMove(Layer &&other) {
+        head_off = other.head_off;
+        tail_off = other.tail_off;
+
+        other.head_off = other.tail_off;
+        headNode = std::move(other.headNode);
+        tailNode = other.tailNode;
+        candidate = other.candidate;
+
+        other.tailNode = other.candidate = nullptr;
+    }
 };
 
 #define ROUND_DOWN_IF_NOT_MULLIPLE(n, base) \
     ((n) % (base) == 0 ? -1 : (n) - (n) % (base))
 
-template<class T, int SkipGap = 1024, class LockType = Spinlock>
+template<class T, class LockType = Spinlock, int SkipGap = 256, int NLayers = 3>
 class Skiplist : public NonCopyable {
 public:
     using ref_ptr_type = DerivedRefPtr<T>;
@@ -405,52 +449,8 @@ private:
         }
     }
         
-    struct SkipNode {
-        void *downNode = nullptr;
-        void *lastDownNode = nullptr;
-        std::unique_ptr<SkipNode> nextNode;
-    };
-    struct Layer {
-        int head_off = 0;
-        int tail_off = 0;
-        std::unique_ptr<SkipNode> headNode;
-        SkipNode *tailNode = nullptr;
-        SkipNode *candidate = nullptr;
-
-        void cleanup() {
-            head_off = tail_off;
-            headNode = nullptr;
-            tailNode = nullptr;
-            candidate = nullptr;
-        }
-
-        Layer() = default;
-
-        Layer(Layer &&other) {
-            _handleMove(std::move(other));
-        }
-
-        Layer &operator=(Layer &&other) {
-            _handleMove(std::move(other));
-
-            return *this;
-        }
-
-        void _handleMove(Layer &&other) {
-            head_off = other.head_off;
-            tail_off = other.tail_off;
-
-            other.head_off = other.tail_off;
-            headNode = std::move(other.headNode);
-            tailNode = other.tailNode;
-            candidate = other.candidate;
-
-            other.tailNode = other.candidate = nullptr;
-        }
-    };
-
     /* 64 ^ 5 = 2 ^ 30, practically enough */
-    std::array<Layer, 5> layers;
+    std::array<Layer, NLayers> layers;
     T *head = nullptr;
     T *tail = nullptr;
     T *candidate = nullptr;
