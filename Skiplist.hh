@@ -90,7 +90,7 @@ struct Layer {
 #define ROUND_DOWN_IF_NOT_MULLIPLE(n, base) \
     ((n) % (base) == 0 ? -1 : (n) - (n) % (base))
 
-template<class T, class LockType = Spinlock, int SkipGap = 256, int NLayers = 3>
+template<class T, class LockType = Spinlock, int SkipGap = 64, int NLayers = 4>
 class Skiplist : public NonCopyable {
 public:
     using ref_ptr_type = DerivedRefPtr<T>;
