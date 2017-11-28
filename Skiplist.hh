@@ -219,11 +219,13 @@ public:
                  *  In other cases, we can delete this node
                  */
                 
-                void *downHead = layerToSplit == 0 ? (void*)head : (void*)layers[layerToSplit - 1].headNode.get();
+                void *downHead;
                 int nextCount;
                 if ( layerToSplit == 0 ) {
+                    downHead = head;
                     nextCount = tail_off - head_off;
                 } else {
+                    downHead = layers[layerToSplit - 1].headNode.get();
                     nextCount = layers[layerToSplit - 1].tail_off - layers[layerToSplit - 1].head_off;
                 }
                 if ( layers[layerToSplit].headNode->downNode == downHead && nextCount == 2 * SkipGap - 1 ) {
@@ -252,7 +254,6 @@ public:
             int toGiveAway = (thisLayer->tail_off - thisLayer->head_off + 1) / 2;
                 
             if ( upperState == UpperCleanuped ) {
-                DEBUG_PRINT_LOCAL("!!!");
                 res->layers[layerToSplit].candidate = reinterpret_cast<SkipNode*>(thatDownNode);
             } else if ( upperState == Normal ) {
                 int candpos = ROUND_DOWN_IF_NOT_MULLIPLE(thisLayer->tail_off, SkipGap);
@@ -281,11 +282,13 @@ public:
                 /* how many next layer nodes to give away */
                 int toGiveAwayNextLayer;
                 int tmp_head_off = i != 0 ? layers[i - 1].head_off : head_off;
-                if ( tmp_head_off % SkipGap == 0 ) {
-                    toGiveAwayNextLayer = toGiveAwayCurLayer * SkipGap;
-                } else {
-                    toGiveAwayNextLayer = (1 + toGiveAwayCurLayer) * SkipGap - tmp_head_off % SkipGap;
-                }
+//                if ( tmp_head_off % SkipGap == 0 ) {
+//                    toGiveAwayNextLayer = toGiveAwayCurLayer * SkipGap;
+//                } else {
+//                    toGiveAwayNextLayer = (1 + toGiveAwayCurLayer) * SkipGap - tmp_head_off % SkipGap;
+//                }
+
+                toGiveAwayNextLayer = (1 + toGiveAwayCurLayer) * SkipGap - (tmp_head_off + SkipGap - 1) % SkipGap - 1;
 
                 res->layers[i].headNode = std::move(layers[i].headNode);
                 layers[i].headNode = std::move(cur_k);
