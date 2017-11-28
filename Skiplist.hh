@@ -380,6 +380,25 @@ public:
         }
     }
 
+    void replace(std::unique_ptr<Skiplist> &ptr) {
+        std::lock_guard<LockType>   _(mut_);
+        MUST_TRUE(head_off == tail_off, "try to replace a non-empry Skiplist: "
+                "head_off:%d,tail_off:%d", head_off, tail_off);
+
+        layers = std::move(ptr->layers);
+        head = ptr->head;
+        tail = ptr->tail;
+        candidate = ptr->candidate;
+        head_off = ptr->head_off;
+        tail_off = ptr->tail_off;
+
+        ptr->head = nullptr;
+        ptr->tail = nullptr;
+        ptr->candidate = nullptr;
+        ptr->head_off = 0;
+        ptr->tail_off = 0;
+    }
+
     ~Skiplist() {
         if ( head ) {
             MUST_TRUE(tail && tail_off > head_off, "tail:%p,head_off:%d,tail_off:%d", tail, head_off, tail_off);
