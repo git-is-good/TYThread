@@ -6,6 +6,7 @@
 #include "debug.hh"
 #include "Spinlock.hh"
 #include "Skiplist.hh"
+#include "ObjectPool.hh"
 
 #include <atomic>
 #include <mutex>
@@ -88,6 +89,17 @@ public:
 };
 
 using TaskPtr = DerivedRefPtr<Task>;
+
+class TaskPool : public NonCopyable {
+public:
+    static void Init();
+
+    static std::unique_ptr<ObjectPoolMediator<Task>> &Instance() {
+        return mediator;
+    }
+private:
+    static std::unique_ptr<ObjectPoolMediator<Task>> mediator;
+};
 
 #endif /* _TASK_HH_ */
 

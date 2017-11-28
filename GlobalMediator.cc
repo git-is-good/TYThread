@@ -24,6 +24,9 @@ GlobalMediator::Init()
     for ( auto &ptr : Instance().threadLocalInfos ) {
         ptr = std::make_unique<ThreadLocalInfo>();
     }
+
+    /* initialize task pool */
+    TaskPool::Init();
     
     /* main thread has thread_id 0 */
     thread_id = 0;

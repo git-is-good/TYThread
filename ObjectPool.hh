@@ -11,7 +11,7 @@
 #include <vector>
 #include <mutex>
 
-#define DEBUG_OBJECT_POOL__
+//#define DEBUG_OBJECT_POOL__
 
 #ifdef DEBUG_OBJECT_POOL__
 
@@ -287,8 +287,8 @@ ObjectPool<T, LockType, NLayers>::my_release(FakeEntry<T> *ptr) {
         std::lock_guard<LockType> _(my_release_mut_);
         if ( ptr->fakeT_.id_of_creation_pool != id ) {
             /* not created by this pool, thus cache it */
-            DEBUG_PRINT_LOCAL("ObjectPool %d: cache a ptr %p from pool:%d,layer:%d",
-                    id, ptr, ptr->fakeT_.id_of_creation_pool, ptr->fakeT_.layer);
+            DEBUG_PRINT_LOCAL("ObjectPool %d: cache a ptr %p from pool:%d,layer:%d, total_cached:%d",
+                    id, ptr, ptr->fakeT_.id_of_creation_pool, ptr->fakeT_.layer, total_cached + 1);
 
             PerIdCache &cache = caches[ptr->fakeT_.id_of_creation_pool];
             PerLayerCache<T> &layer = cache[ptr->fakeT_.layer];

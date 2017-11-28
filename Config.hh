@@ -13,6 +13,7 @@ struct Config : public Singleton {
     /* Task pool size */
     int init_task_pool_size = 1024;
     int enlarge_rate = 2;
+    int max_total_cached = 1024;
 
     static Config &Instance() {
         static Config conf;

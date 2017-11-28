@@ -197,33 +197,32 @@ Task::runInStack()
     }
 }
 
-class TaskPool
-    : public ObjectPool<Task>
-    , public Singleton
+void
+TaskPool::Init()
 {
-public:
-    static TaskPool &Instance() {
-        static TaskPool pool(Config::Instance().init_task_pool_size, Config::Instance().enlarge_rate);
-        return pool;
-    }
+    ObjectPoolConfig config;
+    config
+        .set_num_of_thread(Config::Instance().num_of_threads)
+        .set_pool_init_size(Config::Instance().init_task_pool_size)
+        .set_enlarge_rate(Config::Instance().enlarge_rate)
+        .set_max_total_cached(Config::Instance().max_total_cached)
+        ;
+    mediator = std::make_unique<ObjectPoolMediator<Task>>(config);
+}
 
-private:
-    TaskPool(std::size_t init_task_pool_size, std::size_t enlarge_rate)
-        : ObjectPool<Task>(init_task_pool_size, enlarge_rate)
-    {}
-};
+std::unique_ptr<ObjectPoolMediator<Task>> TaskPool::mediator;
 
 void*
 Task::operator new(std::size_t sz)
 {
 //    return ::operator new(sz);
     MUST_TRUE(sz == sizeof(Task), "Task new operator only for Task object");
-    return TaskPool::Instance().alloc();
+    return TaskPool::Instance()->my_alloc(globalMediator.thread_id);
 }
 
 void
 Task::operator delete(void *ptr, std::size_t)
 {
 //    ::operator delete (ptr);
-    TaskPool::Instance().reclaim(ptr);
+    TaskPool::Instance()->my_release(globalMediator.thread_id, ptr);
 }
