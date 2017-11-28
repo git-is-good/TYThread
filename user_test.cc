@@ -4,6 +4,9 @@
 #include <chrono>
 #include <string>
 #include <atomic>
+#include <vector>
+#include <algorithm>
+#include <numeric>
 
 constexpr int N = 5000000;
 
@@ -107,13 +110,42 @@ bench2(int coro)
 }
 
 void
+math_problem1(long from, long gap, long num)
+{
+    FOR_N_TIMES(100000) {
+        go ([from, gap, num] () {
+            CountDownLatch latch;
+            latch.add(num);
+        
+            std::vector<long> ress(num);
+        
+            for ( long i = 0; i < num; ++i ) {
+                go( [&ress, &latch, from, gap, i] () {
+                    for ( long k = from + gap * i; k < from + gap * (i + 1); ++k ) {
+                        ress[i] += k;
+                    }
+                    latch.down();
+                });
+            }
+        
+            latch.wait();
+        
+            /* pitfal, if 0L not specified, template deduction to 0 int, integer overflow */
+            long total = std::accumulate(ress.begin(), ress.end(), 0L);
+//            printf("from %ld, gap %ld, num %ld: total: %ld\n",
+//                    from, gap, num, total);
+        });
+    }
+}
+
+void
 setup(std::function<void()> co_main)
 {
     co_init();
 
     go([co_main] () {
         co_main();
-        co_terminate();
+//        co_terminate();
         });
 
     co_mainloop();
@@ -122,6 +154,7 @@ setup(std::function<void()> co_main)
 int
 main()
 {
+//    setup(std::bind(math_problem1, 0L, 1000L, 1000L));
 //    setup(std::bind(bench2, 10000));
     setup(std::bind(bench1, 1000000));
 //    {

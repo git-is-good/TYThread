@@ -47,8 +47,11 @@ public:
     explicit Task(std::function<void()> callback, bool isPure = false)
         : callback(callback)
         , debugId(++debugId_counter)
-    {}
-    Task() = default;
+    {
+        DEBUG_PRINT(DEBUG_Task, "Task %d creating", debugId);
+    
+    }
+    //Task() = default;
     ~Task();
     bool addToGroup(TaskGroup *gp);
     void removeFromGroup(TaskGroup *gp);

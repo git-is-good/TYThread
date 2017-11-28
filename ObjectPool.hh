@@ -116,6 +116,9 @@ public:
         return used == 0 ? NotInUseAfter : StillInUseAfter;
     }
 
+    bool isInUse() const {
+        return used != 0;
+    }
 private:
     FakeEntry<T>    *arena;
     FakeEntry<T>    *head;
@@ -184,7 +187,6 @@ public:
         }
 
         // all layers are full 
-        // maximal layer size is fixed to 32, it's practically impossible to exceed
         MUST_TRUE(current_layer + 1 < layers.size(),
                 "ObjectPool %d exceeds its maximal layer: %lu", id, layers.size());
         current_size *= enlarge_rate;
@@ -217,6 +219,14 @@ private:
             layers[layer] = nullptr;
             current_layer = layer - 1;
             current_size /= enlarge_rate;
+
+            /* maybe the lower layer is also removable */
+            while ( current_layer > 0 && !layers[current_layer]->isInUse() ) {
+                DEBUG_PRINT_LOCAL("ObjectPool id:%d: top layer %d becomming empty, free it.", id, current_layer);
+                layers[current_layer] = nullptr;
+                --current_layer;
+                current_size /= enlarge_rate;
+            }
         }
     }
 
@@ -297,6 +307,8 @@ ObjectPool<T, LockType, NLayers>::my_release(FakeEntry<T> *ptr) {
 
                     for ( int j = 0; j < NLayers; ++j ) {
                         if ( caches[i][j].num_cached > 0 ) {
+//                            DEBUG_PRINT_LOCAL("ObjectPool %d: cache full clean up in process: pool:%d,layer:%d,head:%p",
+//                                    id, i, j, caches[i][j].head);
                             mediator.real_my_release(i, j, caches[i][j]);
                         }
                     }
