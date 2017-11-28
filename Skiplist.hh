@@ -11,21 +11,8 @@
 #include <utility>
 #include <type_traits>
 
-//#define DEBUG_SKIPLIST__
-
-#ifdef DEBUG_SKIPLIST__
-
-#include <stdio.h>
-#define DEBUG_PRINT_LOCAL(fmt, ...)             \
-        fprintf(stderr, "%s:%d:%s: " fmt "\n",  \
-                __FILE__, __LINE__, __func__,   \
-                ##__VA_ARGS__);                 \
-
-#else
-
-#define DEBUG_PRINT_LOCAL(fmt, ...)
-
-#endif /* DEBUG_SKIPLIST__ */
+//#define ENABLE_DEBUG_LOCAL
+#include "debug_local_begin.hh"
 
 /* for intrusive linked list */
 template<class Derived, bool UseRefPtr = true>
@@ -482,6 +469,8 @@ private:
 
     mutable LockType mut_;
 };
+
+#include "debug_local_end.hh"
 
 #endif /* _SKIPLIST_HH_ */
 

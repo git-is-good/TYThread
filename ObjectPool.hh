@@ -11,19 +11,8 @@
 #include <vector>
 #include <mutex>
 
-//#define DEBUG_OBJECT_POOL__
-
-#ifdef DEBUG_OBJECT_POOL__
-
-#include <stdio.h>
-#define DEBUG_PRINT_LOCAL(fmt, ...) \
-    fprintf(stderr, fmt "\n", ##__VA_ARGS__)
-
-#else
-
-#define DEBUG_PRINT_LOCAL(fmt, ...)
-
-#endif /* DEBUG_OBJECT_POOL__ */
+//#define ENABLE_DEBUG_LOCAL
+#include "debug_local_begin.hh"
 
 template<class T>
 struct FakeT_ {
@@ -329,4 +318,5 @@ ObjectPool<T, LockType, NLayers>::my_release(FakeEntry<T> *ptr) {
     }
 }
 
+#include "debug_local_end.hh"
 #endif /* _OBJECTPOOL_HH_ */
