@@ -3,7 +3,6 @@
 
 #include "forward_decl.hh"
 #include "util.hh"
-//#include "Blockings.hh"
 #include "Task.hh"
 #include "Skiplist.hh"
 
@@ -16,8 +15,6 @@ public:
         runnable_queue->enqueue(ptr);
     }
     bool run_runnable();
-
-    bool runInStackPureTask(TaskPtr &poped);
 
     // stealing is done in GlobalMediator
 
@@ -39,10 +36,9 @@ public:
         }
     }
 
-    /* for debug */
     TaskPtr &currentTask() { return currentTask__; }
-//private:
-//    BlockingQueue<TaskPtr>  runnable_queue;
+private:
+    friend class GlobalMediator;
     std::unique_ptr<Skiplist<Task>> runnable_queue = std::make_unique<Skiplist<Task>>();
 
     std::vector<TaskPtr>    mpi_blocked_queue;
@@ -50,10 +46,6 @@ public:
     TaskPtr                 currentTask__ = nullptr;
     int                     debugId;
 };
-
-#ifdef _UNIT_TEST_PER_THREAD_MGR_
-extern PerThreadMgr globalTaskMgr;
-#endif /* _UNIT_TEST_PER_THREAD_MGR_ */
 
 #endif /* _PERTHREADMGR_HH_ */
 

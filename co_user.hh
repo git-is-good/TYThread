@@ -60,7 +60,7 @@ go_pure(Fn&& callback, Args&&... args)
     TaskHandle taskHandle;
     taskHandle.ptr__ = makeRefPtr<Task>(
             std::bind(std::forward<Fn>(callback), std::forward<Args>(args)...)); 
-    taskHandle.ptr__->isPure = true;
+    taskHandle.ptr__->setPure();
     globalMediator.addRunnable(taskHandle.ptr__);
     return taskHandle;
 }

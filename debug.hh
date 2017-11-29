@@ -9,8 +9,6 @@ enum {
     DEBUG_TaskGroup         = (1 << 1),
     DEBUG_PerThreadMgr      = (1 << 2),
     DEBUG_GlobalMediator    = (1 << 3),
-    DEBUG_Blockings         = (1 << 4),
-    DEBUG_Special           = (1 << 5),
 
     DEBUG_DEBUG             = (1 << 20),
     DEBUG_INFO              = (1 << 21),
@@ -23,8 +21,7 @@ enum {
 //#define current_debeg_setting DEBUG_Task
 //#define current_debeg_setting (DEBUG_Task | DEBUG_TaskGroup | DEBUG_PerThreadMgr | DEBUG_GlobalMediator) 
 #define current_debeg_setting 0
-//#define current_debeg_setting (DEBUG_Special)
-//#define current_debeg_setting (DEBUG_Task | DEBUG_TaskGroup | DEBUG_GlobalMediator | DEBUG_Blockings)
+//#define current_debeg_setting (DEBUG_Task | DEBUG_TaskGroup | DEBUG_GlobalMediator)
 //#define current_debeg_setting DEBUG_GlobalMediator
 
 #define DEBUG_PRINT(option, fmt, ...)               \

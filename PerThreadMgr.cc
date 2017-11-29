@@ -8,39 +8,6 @@
 #include <mutex>
 #include <chrono>
 
-#ifdef _UNIT_TEST_PER_THREAD_MGR_
-PerThreadMgr globalTaskMgr;
-#endif
-
-bool
-PerThreadMgr::runInStackPureTask(TaskPtr &poped)
-{
-    TaskPtr ptr = runnable_queue->dequeue();
-
-    //TODO: check hasEnoughStack()
-      if ( ptr ) {
-        if ( ptr->isPure ) {
-            DEBUG_PRINT(DEBUG_PerThreadMgr,
-                    "PerThreadMgr %d: about to run in-stack task %d...", debugId, ptr->debugId);
-
-            TaskPtr oldPtr = std::move(co_currentTask);
-            co_currentTask = std::move(ptr);
-            co_currentTask->runInStack();
-            co_currentTask = std::move(oldPtr);
-            return true;
-        } else {
-            DEBUG_PRINT(DEBUG_PerThreadMgr,
-                    "PerThreadMgr %d: Task %d not pure, cannot in stack...", debugId, ptr->debugId);
-            poped = std::move(ptr);
-            return false;
-        }
-    } else {
-            DEBUG_PRINT(DEBUG_PerThreadMgr,
-                    "PerThreadMgr %d: runnable_queue is empty...", debugId);
-        return false;
-    }
-}
-
 bool
 PerThreadMgr::run_runnable()
 {

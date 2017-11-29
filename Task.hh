@@ -51,26 +51,36 @@ public:
         DEBUG_PRINT(DEBUG_Task, "Task %d creating", debugId);
     
     }
-    //Task() = default;
     ~Task();
     bool addToGroup(TaskGroup *gp);
     void removeFromGroup(TaskGroup *gp);
     void terminate();
 
+    void setPure(bool v = true) { isPure = v; }
     void runInStack();
+
     void continuationIn();
     void continuationOut();
 
-//private:
+    int debugId;
+
+    // memory management
+    static void* operator new(std::size_t sz);
+    static void operator delete(void *p, std::size_t sz);
+private:
+    friend class PerThreadMgr;
+    friend class TaskGroup;
+    friend class GlobalMediator;
+
     std::function<void()>   callback;
 
     /* a pure task will not block, and can be scheduled in the current stack */
     bool                    isPure = false;
 
+    int state = Initial;
     bool isFini() const {
         return state == Task::Terminated;
     }
-    int state = Initial;
 
     using continuation_t = boost::context::continuation;
     continuation_t          saved_continuation;
@@ -79,16 +89,9 @@ public:
     /* this vector will be accessed concurrently */
     TaskGroup               *blockedBy = nullptr;
     std::vector<TaskGroup*> groups;
-//    std::mutex              mut_;
     Spinlock                mut_;
 
-
-    int debugId;
     static std::atomic<int> debugId_counter;
-
-    // memory management
-    static void* operator new(std::size_t sz);
-    static void operator delete(void *p, std::size_t sz);
 };
 
 using TaskPtr = DerivedRefPtr<Task>;

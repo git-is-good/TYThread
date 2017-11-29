@@ -53,53 +53,10 @@ GlobalMediator::addRunnable(TaskPtr ptr)
  //   co_globalWaitCond.notify_all();
 }
 
-void
-GlobalMediator::yieldRequest()
-{
-    if ( inCoroutine() ) {
-        TaskPtr &ptr = currentTask();
-        DEBUG_PRINT(DEBUG_GlobalMediator, "Thread %d: Task %d inCoroutine yield with state %s",
-                thread_id, ptr->debugId, Task::getStateName(ptr->state));
-//        if ( ptr->state == Task::GroupWait ) {
-//            // no choice, because PerThreadMgr needs to 
-//            // handle it
-//            ptr->continuationOut();
-//            return;
-//        }
-
-        PerThreadMgr *mgr = getThisPerThreadMgr();
-
-        DEBUG_PRINT(DEBUG_GlobalMediator, "Thread %d: Task %d runInStackPureTask() after yield inCoroutine",
-                thread_id, ptr->debugId);
-        //TODO: how to reduce enqueue/dequeue
-//        while ( mgr->runInStackPureTask() )
-//            ;
-
-        ptr->continuationOut();
-    } else {
-        // in main-code
-        run_once();
-    }
-}
-
-bool
-GlobalMediator::hasEnoughStack()
-{
-    return true;
-}
-
-bool
-GlobalMediator::inCoroutine()
-{
-    return co_currentTask != nullptr;
-}
-
 bool
 GlobalMediator::run_once()
 {
     PerThreadMgr *mgr = getThisPerThreadMgr();
-    //TODO: how to ....
-//    if ( mgr->runInStackPureTask() ) return true;
     if ( mgr->run_runnable() ) return true;
 
     // no runnable, traverse and steal
@@ -116,8 +73,6 @@ GlobalMediator::run_once()
         }
 
         // steal succeeded
-        DEBUG_PRINT(DEBUG_Special | DEBUG_GlobalMediator, "Thread %d: stole from %d %lu tasks",
-                thread_id, i, skiplistptr->size());
         MUST_TRUE(mgr->runnable_queue->size() == 0, "should be empty:%lu",
                 mgr->runnable_queue->size());
         mgr->runnable_queue->replace(skiplistptr);

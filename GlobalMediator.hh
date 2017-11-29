@@ -12,10 +12,10 @@
 #include <thread>
 
 #define globalMediator      GlobalMediator::Instance()
-#define co_currentTask      globalMediator.getThisPerThreadMgr()->currentTask__
+#define co_currentTask      globalMediator.getThisPerThreadMgr()->currentTask()
 #define co_globalWaitMut    globalMediator.globalWaitMut_
 #define co_globalWaitCond   globalMediator.globalWaitCond_
-#define co_yield            globalMediator.yieldRequest()
+#define co_yield            co_currentTask->continuationOut()
 
 struct ThreadLocalInfo : public NonCopyable {
     PerThreadMgr    pmgr;
@@ -24,9 +24,6 @@ struct ThreadLocalInfo : public NonCopyable {
 
 class GlobalMediator : public Singleton {
 public:
-    bool inCoroutine();
-    bool hasEnoughStack();
-    void yieldRequest();
     void addRunnable(TaskPtr ptr);
     bool run_once();
     void run();
@@ -34,31 +31,27 @@ public:
     TaskPtr &currentTask() {
         return getThisPerThreadMgr()->currentTask__;
     }
-
-    static void TerminateGracefully() {
-        Instance().terminatable = true;
+    PerThreadMgr *getThisPerThreadMgr() {
+        return &threadLocalInfos[thread_id]->pmgr;
     }
 
-
-//private:
-    static PerThreadMgr *getThisPerThreadMgr() {
-        return &Instance().threadLocalInfos[thread_id]->pmgr;
-    }
+    /* called by the main thread to initailize all env */
+    static void Init();
     static GlobalMediator &Instance() {
         static GlobalMediator g;
         return g;
     }
+    static void TerminateGracefully() {
+        Instance().terminatable = true;
+    }
     static thread_local int thread_id;
-
-    /* called by the main thread to initailize all env */
-    static void Init();
-    bool terminatable = false;
-
-    std::vector<std::unique_ptr<ThreadLocalInfo>> threadLocalInfos;
-
     std::mutex globalWaitMut_;
     std::condition_variable globalWaitCond_;
 
+private:
+    bool terminatable = false;
+
+    std::vector<std::unique_ptr<ThreadLocalInfo>> threadLocalInfos;
     std::vector<std::thread> children;
 };
 

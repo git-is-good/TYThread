@@ -9,14 +9,11 @@
 #include <mutex>
 #include <atomic>
 
-#include <unordered_set>
-
 /* TaskGroup might be accessed by multiple threads
  * through informDone();
  */
 class TaskGroup : public NonCopyable {
 public:
-    TaskGroup();
     void wait();
     TaskGroup &registe(TaskPtr &ptr);
     TaskGroup &registe(TaskPtr &&ptr) {
@@ -30,19 +27,13 @@ public:
     ~TaskGroup();
 
     int debugId = ++debugId_counter;
-//private:
-    bool    inCoroutine;
-//    bool    blocked = false;
-
+private:
+    friend class Task;
     TaskPtr blockedTask;
     std::vector<TaskPtr> taskPtrs;
-//    std::unordered_set<TaskPtr> taskPtrs;
-//    std::mutex          mut_;
     Spinlock            mut_;
 
     static std::atomic<int> debugId_counter;
-
-
 };
 
 #endif /* _TASKGROUP_HH_ */

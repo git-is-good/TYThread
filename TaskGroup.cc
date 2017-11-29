@@ -12,10 +12,6 @@
 #include <thread>
 #include <chrono>
 
-TaskGroup::TaskGroup()
-    : inCoroutine(globalMediator.inCoroutine())
-{}
-
 void
 TaskGroup::wait()
 {
@@ -36,36 +32,6 @@ TaskGroup::wait()
   if ( isRealWait ) {
       co_yield;
   }
-
-//    bool isRealWait = false;
-//    {
-//        std::lock_guard<Spinlock> _(mut_);
-//        isRealWait = !taskPtrs.empty();
-//        blocked = isRealWait;
-//    }
-//
-//    if ( isRealWait ) {
-//        DEBUG_PRINT(DEBUG_TaskGroup, "task %d starts GroupWait at TaskGroup{%s} %d",
-//                co_currentTask->debugId, inCoroutine ? "co" : "main-code", debugId);
-//        if ( inCoroutine ) {
-//            co_currentTask->state = Task::GroupWait;
-//            co_currentTask->blockedBy = this;
-//            co_yield;
-//        } else {
-//            // in main-code
-//            for ( ;; ) {
-//                if ( !blocked ) break;
-//
-//                if ( globalMediator.run_once() ) continue;
-//
-//                // nothing remaining ...
-//                std::unique_lock<Spinlock> lock(co_globalWaitMut);
-//                co_globalWaitCond.wait_for(lock, std::chrono::milliseconds(Config::Instance().max_wait_task_time));
-//            }
-//        }
-//    } else {
-//        DEBUG_PRINT(DEBUG_TaskGroup, "TaskGroup %d nothing to wait", debugId);
-//    }
 }
 
 bool
@@ -86,7 +52,6 @@ TaskGroup::pushTaskPtr(TaskPtr &&ptr)
 {
     std::lock_guard<Spinlock> _(mut_);
     taskPtrs.push_back(std::move(ptr));
-//    taskPtrs.insert(std::move(ptr));
 }
 
 TaskGroup&
@@ -103,35 +68,18 @@ TaskGroup::registe(TaskPtr &ptr)
 void
 TaskGroup::informDone(TaskPtr ptr)
 {
-//    bool canrun = false;
     TaskPtr nowCanRun = nullptr;
     {
         std::lock_guard<Spinlock> _(mut_);
 
         DEBUG_PRINT(DEBUG_TaskGroup, "task %d informDone to TaskGroup %d...", ptr->debugId, debugId);
         auto iter = std::find(taskPtrs.begin(), taskPtrs.end(), ptr);
-//        auto iter = taskPtrs.find(ptr);
         MUST_TRUE(iter != taskPtrs.end(), "ptr: %d", ptr->debugId);
         taskPtrs.erase(iter);
-//        if ( blocked && taskPtrs.empty() ) {
         if ( taskPtrs.empty() ) {
             nowCanRun = std::move(blockedTask);
-//            canrun = true;
-//            blocked = false;
         }
     }
-
-//    if ( canrun ) {
-//        DEBUG_PRINT(DEBUG_TaskGroup,
-//                "informDone causes task{%s} %d blocked by %d runnable", inCoroutine ? "co" : "main-code", blockedTask->debugId, debugId);
-//        if ( inCoroutine ) {
-//            blockedTask->state = Task::Runnable;
-//            globalMediator.addRunnable(blockedTask);
-//            blockedTask = nullptr;
-//        } else {
-//            co_globalWaitCond.notify_all();
-//        }
-//    }
 
     if ( nowCanRun ) {
         nowCanRun->state = Task::Runnable;
