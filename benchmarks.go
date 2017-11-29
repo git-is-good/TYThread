@@ -5,9 +5,11 @@ import (
     "time"
     "sync"
     "runtime"
+    "math/rand"
 )
 
-func bench1(size int) {
+func massive_creation_test(size int) {
+    start := time.Now()
     var group sync.WaitGroup
     group.Add(size)
     sum := 0
@@ -19,17 +21,16 @@ func bench1(size int) {
         } ()
     }
     group.Wait()
-    fmt.Println(sum)
+    delta := time.Now().Sub(start)
+    fmt.Printf("<Golang:massive_creation:goroutine:%-8d> duration:%v, %v/op\n", size, delta, delta / time.Duration(size))
 }
 
 const (
-    size = 1000000
-
-    size2 = 10000
     N = 5000000
 )
 
-func bench2() {
+func massive_yield_test(size2 int) {
+    start := time.Now()
     var group sync.WaitGroup
     group.Add(size2)
 
@@ -42,13 +43,71 @@ func bench2() {
         } ()
     }
     group.Wait()
+    delta := time.Now().Sub(start)
+    fmt.Printf("<Golang:massive_yield:goroutine:%-6d:total_yield:%v> duration:%v, %v/op\n", size2, N, delta, delta / N)
+}
+
+const M = 1600
+var A [M][M]int
+var B [M][M]int
+var C1 [M][M]int
+var C2 [M][M]int
+
+func dense_mat_mut_test(ntasks int) {
+    for i := 0; i < M; i++ {
+        for j := 0; j < M; j++ {
+            A[i][j] = rand.Int() % 100
+            B[i][j] = rand.Int() % 100
+        }
+    }
+
+    if M % ntasks != 0 {
+        panic("ntasks must divide M in benchmark")
+    }
+
+    chunk := M / ntasks
+
+    start := time.Now()
+    var group sync.WaitGroup
+    group.Add(ntasks)
+
+    for i := 0; i < ntasks; i++ {
+        go func (i int) {
+            for s := 0; s < chunk; s++ {
+                r := i * chunk + s
+                for j := 0; j < M; j++ {
+                    sum := 0
+                    for k := 0; k < M; k++ {
+                        sum += A[r][k] * B[k][j]
+                    }
+                    C2[r][j] = sum
+                }
+            }
+            group.Done()
+        } (i)
+    }
+    group.Wait()
+    delta := time.Now().Sub(start)
+    fmt.Printf("<Golang:DenseMatMut:goroutine:%-4d> duration:%v\n", ntasks, delta)
 }
 
 func main() {
-    start := time.Now()
-    bench1(size)
-//    bench2()
-    delta := time.Now().Sub(start)
-    fmt.Printf("<bench1@go:size:%v> duration:%v\n", size, delta)
-//    fmt.Printf("<bench2@go:size:%v:N:%v> duration:%v, %v/op\n", size2, N, delta, delta / N)
+    massive_yield_test(1)
+    massive_yield_test(10)
+    massive_yield_test(100)
+    massive_yield_test(1000)
+    massive_yield_test(10000)
+    massive_yield_test(100000)
+
+    massive_creation_test(1000)
+    massive_creation_test(10000)
+    massive_creation_test(100000)
+    massive_creation_test(1000000)
+    massive_creation_test(10000000)
+
+    dense_mat_mut_test(4)
+    dense_mat_mut_test(40)
+    dense_mat_mut_test(400)
+    dense_mat_mut_test(800)
+
 }

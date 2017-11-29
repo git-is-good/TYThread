@@ -1,21 +1,58 @@
 CC := clang++
 INCLUDEPATH := -I/usr/local/include
 LIBPATH := -L/usr/local/lib
-CXXFLAGS := $(INCLUDEPATH) $(LIBPATH) --std=c++14 -g -O2
+CXXFLAGS := --std=c++14 -g -O2
+AR := ar
 
-TARGETS := PerThreadMgr_test Task_test GlobalMediator_test user_test
+OMPCC := /usr/local/opt/llvm/bin/clang
+OMPLIBPATH := -L/usr/local/opt/llvm/lib
+OMPCXXFLAGS := -fopenmp
 
-user_test: Task.cc TaskGroup.cc PerThreadMgr.cc GlobalMediator.cc user_test.cc
-	$(CC) $(CXXFLAGS) -o $@ $^ -lboost_context
+HEADERS :=					\
+	Config.hh				\
+	GlobalMediator.hh		\
+	ObjectPool.hh			\
+	PerThreadMgr.hh			\
+	Skiplist.hh				\
+	Spinlock.hh				\
+	Task.hh					\
+	TaskGroup.hh			\
+	co_user.hh				\
+	debug.hh				\
+	debug_local_begin.hh	\
+	debug_local_end.hh		\
+	util.hh				
 
-GlobalMediator_test: Task.cc TaskGroup.cc PerThreadMgr.cc GlobalMediator.cc GlobalMediator_test.cc
-	$(CC) $(CXXFLAGS) -D_UNIT_TEST_GLOBAL_MEDIATOR_ -o $@ $^ -lboost_context
+LIBS := -lboost_context
 
-PerThreadMgr_test: Task.cc TaskGroup.cc PerThreadMgr.cc PerThreadMgr_test.cc
-	$(CC) $(CXXFLAGS) -D_UNIT_TEST_PER_THREAD_MGR_ -o $@ $^ -lboost_context
+OBJS := 					\
+	GlobalMediator.o		\
+	PerThreadMgr.o			\
+	Task.o					\
+	TaskGroup.o
 
-Task_test: Task.cc Task_test.cc TaskGroup.cc
-	$(CC) $(CXXFLAGS) -D_UNIT_TEST_TASK_ -o $@ $^ -lboost_context
+GENLIBS := libyami_thread.a
+
+EXECS := user_test
+
+TARGETS := $(GENLIBS) $(EXECS)
+
+all: $(TARGETS)
+
+libyami_thread.a: $(OBJS)
+	$(AR) rcs $@ $(OBJS)
+
+user_test: user_test.o $(GENLIBS)
+	$(CC) $(CXXFLAGS) $(LIBPATH) -o $@ $^ $(LIBS)
+
+omp_test: omp_test.c
+	$(OMPCC) $(OMPCXXFLAGS) $(OMPLIBPATH) -o $@ $^
+
+%.o: %.cc $(HEADERS)
+	$(CC) -c $(CXXFLAGS) $(INCLUDEPATH) -o $@ $<
 
 clean:
-	rm -rf *~ *.dSYM *.o a.out $(TARGETS)
+	rm -rf *~ *.dSYM a.out omp_test
+
+clean-real:
+	rm -rf *~ *.dSYM a.out $(TARGETS) $(GENLIBS) $(OBJS) omp_test
