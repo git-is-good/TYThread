@@ -15,15 +15,27 @@
 //#define ENABLE_DEBUG_LOCAL
 #include "debug_local_begin.hh"
 
+#define set_id_and_layer(some_fakeT, id, layer) \
+    (some_fakeT).combined_info = ((static_cast<unsigned>(id) << 16) | static_cast<unsigned>(layer))
+
+#define read_id(some_fakeT)  \
+    ((int)((((some_fakeT).combined_info)) >> 16))
+
+#define read_layer(some_fakeT)  \
+    ((int)(((some_fakeT).combined_info) & 0xFFFFU))
+
 template<class T>
 struct FakeT_ {
     char fake_[sizeof(T)];
 
+    /* leading 16 bits: id_of_creation_pool, last 16 bits: layer */
+    unsigned combined_info;
+
     /* the pool in which it is created */
-    int id_of_creation_pool;
+//    int id_of_creation_pool;
 
     /* the layer of creation */
-    int layer;
+//    int layer;
 };
 
 template<class T>
@@ -187,8 +199,9 @@ public:
         for ( int i = current_layer; i >= 0; --i ) {
             if ( (res = layers[i]->my_alloc()) != nullptr ) {
                 DEBUG_PRINT_LOCAL("ObjectPool %d, my_allocated %p from layer %i", id, res, i);
-                res->fakeT_.id_of_creation_pool = id;
-                res->fakeT_.layer = i;
+                set_id_and_layer(res->fakeT_, id, i);
+//                res->fakeT_.id_of_creation_pool = id;
+//                res->fakeT_.layer = i;
                 return res;
             }
         }
@@ -200,8 +213,9 @@ public:
         layers[++current_layer] = std::make_unique<ObjectLayer<T>>(current_size);
 
         res = layers[current_layer]->my_alloc();
-        res->fakeT_.id_of_creation_pool = id;
-        res->fakeT_.layer = current_layer;
+        set_id_and_layer(res->fakeT_, id, current_layer);
+//        res->fakeT_.id_of_creation_pool = id;
+//        res->fakeT_.layer = current_layer;
 
         DEBUG_PRINT_LOCAL("ObjectPool %d: all layers are full, increase current_layer to %d, my_allocated %p",
                 id, current_layer, res);
@@ -338,13 +352,16 @@ void
 ObjectPool<T, LockType, NLayers>::my_release(FakeEntry<T> *ptr) {
     {
         std::lock_guard<LockType> _(my_release_mut_);
-        if ( ptr->fakeT_.id_of_creation_pool != id ) {
+//        if ( ptr->fakeT_.id_of_creation_pool != id ) {
+        if ( read_id(ptr->fakeT_) != id ) {
             /* not created by this pool, thus cache it */
             DEBUG_PRINT_LOCAL("ObjectPool %d: cache a ptr %p from pool:%d,layer:%d, total_cached:%d",
-                    id, ptr, ptr->fakeT_.id_of_creation_pool, ptr->fakeT_.layer, total_cached + 1);
+                    id, ptr, read_id(ptr->fakeT_), read_layer(ptr->fakeT_), total_cached + 1);
 
-            PerIdCache &cache = caches[ptr->fakeT_.id_of_creation_pool];
-            PerLayerCache<T> &layer = cache[ptr->fakeT_.layer];
+//            PerIdCache &cache = caches[ptr->fakeT_.id_of_creation_pool];
+//            PerLayerCache<T> &layer = cache[ptr->fakeT_.layer];
+            PerIdCache &cache = caches[read_id(ptr->fakeT_)];
+            PerLayerCache<T> &layer = cache[read_layer(ptr->fakeT_)];
             if ( layer.tail ) {
                 ptr->next = layer.head;
                 layer.head = ptr;
@@ -365,7 +382,8 @@ ObjectPool<T, LockType, NLayers>::my_release(FakeEntry<T> *ptr) {
     /* created by this pool, my_release directly */
     {
         std::lock_guard<LockType> _(mut_);
-        int layer = ptr->fakeT_.layer;
+//        int layer = ptr->fakeT_.layer;
+        int layer = read_layer(ptr->fakeT_);
 
         DEBUG_PRINT_LOCAL("ObjectPool %d my_release ptr %p", id, ptr);
         int res = layers[layer]->my_release(ptr);

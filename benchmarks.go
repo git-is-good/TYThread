@@ -127,15 +127,15 @@ func complex_scheduling_test(num int) {
 
 
 func main() {
-//    massive_yield_test(100)
-//    massive_yield_test(1000)
-//    massive_yield_test(10000)
-//    massive_yield_test(100000)
-//
-//    massive_creation_test(10000)
-//    massive_creation_test(100000)
-//    massive_creation_test(1000000)
-//    massive_creation_test(10000000)
+    massive_yield_test(100)
+    massive_yield_test(1000)
+    massive_yield_test(10000)
+    massive_yield_test(100000)
+
+    massive_creation_test(10000)
+    massive_creation_test(100000)
+    massive_creation_test(1000000)
+    massive_creation_test(10000000)
 
     complex_scheduling_test(1000)
 

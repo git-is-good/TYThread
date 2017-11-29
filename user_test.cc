@@ -63,7 +63,7 @@ void massive_creation_test_naive(int size) {
         TimeInterval __("massive_creation_test_naive:size:" + std::to_string(size));
         for ( int i = 0; i < size; i++ ) {
             bundle.registe(
-                    go([&sum] () {
+                    go_pure([&sum] () {
                         sum ++;
                         })
                     );
@@ -366,9 +366,9 @@ setup_at_once()
 int
 main()
 {
-//    run_benchmarks();
+    run_benchmarks();
 //    setup_at_once();
-    setup(std::bind(complex_scheduling_test, 10000, 1000));
+//    setup(std::bind(complex_scheduling_test, 10000, 1000));
 //    setup(dense_mat_mut_test, Config::Instance().num_of_threads);
 //    setup(std::bind(math_problem1, 0L, 1000L, 1000L));
 //    setup(std::bind(massive_yield_test, 10000));

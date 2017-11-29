@@ -5,7 +5,7 @@
 
 struct Config : public Singleton {
     int max_stack_size = 1024 * 128;
-    int num_of_threads = 4;
+    int num_of_threads = 3;
 
     /* in microseconds */
     int max_wait_task_time = 1000;
