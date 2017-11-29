@@ -14,7 +14,7 @@ struct TimeInterval {
     std::chrono::time_point<std::chrono::high_resolution_clock>  start;
     std::string message;
     int nops;
-    explicit TimeInterval(std::string const &message = "unknown", int nops = N )
+    explicit TimeInterval(std::string const &message = "unknown", int nops = 0 )
         : message(message)
         , nops(nops)
     {
@@ -24,7 +24,7 @@ struct TimeInterval {
         auto period = std::chrono::high_resolution_clock::now() - start;
         printf("<%s> duration: %lfms, %lf ns/op\n", message.c_str(), 
                 std::chrono::duration<double, std::milli>(period).count(),
-                (double)std::chrono::duration_cast<std::chrono::nanoseconds>(period).count() / nops
+                nops == 0 ? 0 : (double)std::chrono::duration_cast<std::chrono::nanoseconds>(period).count() / nops
               );
     }
 };
@@ -138,6 +138,73 @@ math_problem1(long from, long gap, long num)
     }
 }
 
+#include "Config.hh"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+const int M=2000;
+int A[M][M], B[M][M];
+int C1[M][M], C2[M][M];
+
+void
+math_problem2()
+{
+    srand((int)time(NULL));
+    for (int i = 0; i < M; ++i) {
+        for (int j = 0; j < M; ++j) {
+            A[i][j] = rand() % 100;
+            B[i][j] = rand() % 100;
+        }
+    }
+
+    {
+        TimeInterval __("ompbench:Sequential");
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < M; ++j) {
+                int Sum = 0;
+                for (int k = 0; k < M; ++k) {
+                    Sum += A[i][k] * B[k][j];
+                }
+                C1[i][j] = Sum;
+            }
+        }
+    }
+
+    {
+        TimeInterval __("ompbench:YamiThread");
+        int num_of_threads = Config::Instance().num_of_threads;
+        int chunk = M / num_of_threads;
+
+
+        TaskBundle bundle;
+        for (int i = 0; i < num_of_threads; ++i) {
+            bundle.registe(
+                go ([i, chunk] () {
+                    for ( int s = 0; s < chunk; ++s ) {
+                        for (int j = 0; j < M; ++j) {
+                            int Sum = 0;
+                            int r = i * chunk + s;
+                            for (int k = 0; k < M; ++k) {
+                                Sum += A[r][k] * B[k][j];
+                            }
+                            C2[i * chunk + s][j] = Sum;
+                        }
+                    }
+                }));
+        }
+        bundle.wait();
+    }
+
+    printf("Checking result...\n");
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < M; j++) {
+            assert (C1[i][j] == C2[i][j]);
+        }
+    }
+    printf("Passed.\n");
+}
+
 void
 setup(std::function<void()> co_main)
 {
@@ -154,9 +221,10 @@ setup(std::function<void()> co_main)
 int
 main()
 {
+    setup(math_problem2);
 //    setup(std::bind(math_problem1, 0L, 1000L, 1000L));
 //    setup(std::bind(bench2, 10000));
-    setup(std::bind(bench1, 1000000));
+//    setup(std::bind(bench1, 1000000));
 //    {
 //        TimeInterval("hell");
 //    }

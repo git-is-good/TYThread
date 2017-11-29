@@ -2,8 +2,8 @@
 #define _GLOBALMEDIATOR_HH_
 
 #include "util.hh"
-#include "forward_decl.hh"
 #include "PerThreadMgr.hh"
+#include "Task.hh"
 
 #include <utility>
 #include <memory>

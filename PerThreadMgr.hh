@@ -1,7 +1,6 @@
 #ifndef _PERTHREADMGR_HH_
 #define _PERTHREADMGR_HH_
 
-#include "forward_decl.hh"
 #include "util.hh"
 #include "Task.hh"
 #include "Skiplist.hh"

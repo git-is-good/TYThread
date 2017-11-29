@@ -1,7 +1,6 @@
 #ifndef _TASK_HH_
 #define _TASK_HH_
 
-#include "forward_decl.hh"
 #include "util.hh"
 #include "debug.hh"
 #include "Spinlock.hh"
@@ -15,10 +14,15 @@
 #include <vector>
 #include <boost/context/all.hpp>
 
+class TaskGroup;
+
 class Task 
     : public RefCounted
     , public Linkable<Task>
 {
+    friend class PerThreadMgr;
+    friend class TaskGroup;
+    friend class GlobalMediator;
 public:
     enum {
         /* when the Task is spawned */
@@ -68,10 +72,6 @@ public:
     static void* operator new(std::size_t sz);
     static void operator delete(void *p, std::size_t sz);
 private:
-    friend class PerThreadMgr;
-    friend class TaskGroup;
-    friend class GlobalMediator;
-
     std::function<void()>   callback;
 
     /* a pure task will not block, and can be scheduled in the current stack */

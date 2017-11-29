@@ -2,7 +2,7 @@
 #define _TASKGROUP_HH_
 
 #include "util.hh"
-#include "forward_decl.hh"
+#include "Task.hh"
 
 #include <memory>
 #include <vector>
