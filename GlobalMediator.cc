@@ -161,6 +161,7 @@ GlobalMediator::run()
             break;
         } else {
             // main thread, needs to sweep all children
+            TaskPool::Terminate();
             for ( auto &thread : children ) {
                 thread.join();
             }

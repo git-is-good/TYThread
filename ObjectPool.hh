@@ -10,6 +10,7 @@
 #include <array>
 #include <vector>
 #include <mutex>
+#include <thread>
 
 //#define ENABLE_DEBUG_LOCAL
 #include "debug_local_begin.hh"
@@ -133,6 +134,7 @@ struct ObjectPoolConfig {
     std::size_t pool_init_size;
     std::size_t enlarge_rate;
     int max_total_cached = 1024;
+    int cache_reclaim_period = 0;
 
     ObjectPoolConfig &set_num_of_thread(int p) {
         num_of_thread = p;
@@ -151,6 +153,11 @@ struct ObjectPoolConfig {
 
     ObjectPoolConfig &set_max_total_cached(int p) {
         max_total_cached = p;
+        return *this;
+    }
+
+    ObjectPoolConfig &set_cache_reclaim_period(int p) {
+        cache_reclaim_period = p;
         return *this;
     }
 };
@@ -211,6 +218,13 @@ public:
     }
 
     void my_release(FakeEntry<T> *ptr);
+
+    void do_period_cleanup() {
+        std::lock_guard<LockType>   _(my_release_mut_);
+        if ( total_cached != 0 ) {
+            cleanup_all_cache();
+        }
+    }
 private:
     void remove_layer_if_not_in_use(int layer, int state) {
         if ( state == ObjectLayer<T>::NotInUseAfter && layer > 0 && layer == current_layer ) {
@@ -229,6 +243,8 @@ private:
             }
         }
     }
+
+    void cleanup_all_cache();
 
     ObjectPoolMediator<T, LockType>     &mediator;
     int                                 id;
@@ -259,6 +275,10 @@ public:
         for ( int i = 0; i < config.num_of_thread; ++i ) {
             pools[i] = std::make_unique<ObjectPool<T, LockType>>(*this, i, config);
         }
+        if ( config.cache_reclaim_period > 0 ) {
+            // create GC daemon
+            daemon.run(this, config.cache_reclaim_period);
+        }
         DEBUG_PRINT_LOCAL("init done... num_of_thread: %d", config.num_of_thread);
     }
 
@@ -275,8 +295,42 @@ public:
     void real_my_release(int id, int layer, PerLayerCache<T> &cache) {
         pools[id]->my_release(layer, cache);
     }
+
+    void daemonTerminate() {
+        if ( daemon ) {
+            daemon.terminate();
+        }
+    }
+
+    class ObjectPoolGCDaemon {
+    public:
+        void terminate() {
+            terminatable = true;
+            daemon_.join();
+        };
+        operator bool() {
+            return configed;
+        }
+        void run(ObjectPoolMediator *mediator, int cache_reclaim_period) {
+            configed = true;
+            daemon_ = std::thread( [this, mediator, cache_reclaim_period] () {
+                while ( !terminatable ) {
+                    for ( auto &pool : mediator->pools ) {
+                        pool->do_period_cleanup();
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(cache_reclaim_period));
+                }
+            });
+        }
+        ObjectPoolGCDaemon() = default;
+    private:
+        bool terminatable = false;
+        bool configed = false;
+        std::thread daemon_;
+    };
 private:
     std::vector<std::unique_ptr<ObjectPool<T, LockType>>> pools;
+    ObjectPoolGCDaemon daemon;
 };
 
 template<class T, class LockType, int NLayers>
@@ -302,18 +356,7 @@ ObjectPool<T, LockType, NLayers>::my_release(FakeEntry<T> *ptr) {
             /* whether need a real my_release of all cache */
             if ( ++total_cached > max_total_cached ) {
                 DEBUG_PRINT_LOCAL("ObjectPool %d: cache full clean up all cache", id);
-                for ( int i = 0; i < num_of_thread; ++i ) {
-                    if ( i == id ) continue;
-
-                    for ( int j = 0; j < NLayers; ++j ) {
-                        if ( caches[i][j].num_cached > 0 ) {
-//                            DEBUG_PRINT_LOCAL("ObjectPool %d: cache full clean up in process: pool:%d,layer:%d,head:%p",
-//                                    id, i, j, caches[i][j].head);
-                            mediator.real_my_release(i, j, caches[i][j]);
-                        }
-                    }
-                }
-                total_cached = 0;
+                cleanup_all_cache();
             }
             return;
         }
@@ -328,6 +371,21 @@ ObjectPool<T, LockType, NLayers>::my_release(FakeEntry<T> *ptr) {
         int res = layers[layer]->my_release(ptr);
         remove_layer_if_not_in_use(layer, res);
     }
+}
+
+template<class T, class LockType, int NLayers>
+void
+ObjectPool<T, LockType, NLayers>::cleanup_all_cache() {
+    for ( int i = 0; i < num_of_thread; ++i ) {
+        if ( i == id ) continue;
+
+        for ( int j = 0; j < NLayers; ++j ) {
+            if ( caches[i][j].num_cached > 0 ) {
+                mediator.real_my_release(i, j, caches[i][j]);
+            }
+        }
+    }
+    total_cached = 0;
 }
 
 #include "debug_local_end.hh"

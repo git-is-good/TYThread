@@ -145,7 +145,7 @@ setup(std::function<void()> co_main)
 
     go([co_main] () {
         co_main();
-//        co_terminate();
+        co_terminate();
         });
 
     co_mainloop();

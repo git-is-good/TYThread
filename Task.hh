@@ -100,6 +100,10 @@ public:
     static std::unique_ptr<ObjectPoolMediator<Task>> &Instance() {
         return mediator;
     }
+
+    static void Terminate() {
+        mediator->daemonTerminate();
+    }
 private:
     static std::unique_ptr<ObjectPoolMediator<Task>> mediator;
 };

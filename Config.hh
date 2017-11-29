@@ -14,6 +14,8 @@ struct Config : public Singleton {
     int init_task_pool_size = 256;
     int enlarge_rate = 2;
     int max_total_cached = 128;
+    /* in milliseconds, 0 for no GC daemon */
+    int cache_reclaim_period = 500;
 
     static Config &Instance() {
         static Config conf;

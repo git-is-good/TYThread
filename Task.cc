@@ -206,6 +206,7 @@ TaskPool::Init()
         .set_pool_init_size(Config::Instance().init_task_pool_size)
         .set_enlarge_rate(Config::Instance().enlarge_rate)
         .set_max_total_cached(Config::Instance().max_total_cached)
+        .set_cache_reclaim_period(Config::Instance().cache_reclaim_period)
         ;
     mediator = std::make_unique<ObjectPoolMediator<Task>>(config);
 }
