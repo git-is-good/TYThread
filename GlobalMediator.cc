@@ -50,7 +50,9 @@ GlobalMediator::addRunnable(TaskPtr ptr)
     DEBUG_PRINT(DEBUG_GlobalMediator, "Thread %d: Mediator adds task %d at state %s runnable",
             thread_id, ptr->debugId, Task::getStateName(ptr->state));
     getThisPerThreadMgr()->addRunnable(ptr);
- //   co_globalWaitCond.notify_all();
+    if ( sleep_count != 0 ) {
+        co_globalWaitCond.notify_one();
+    }
 }
 
 bool

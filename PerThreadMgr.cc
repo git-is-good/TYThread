@@ -20,7 +20,11 @@ PerThreadMgr::run_runnable()
         MUST_TRUE(ptr != nullptr, "PerThreadMgr: %d", debugId);
         currentTask__ = ptr;
 
-        ptr->continuationIn();
+        if ( ptr->isPure ) {
+            ptr->runInStack();
+        } else {
+            ptr->continuationIn();
+        }
         currentTask__ = nullptr;
 
         switch ( ptr->state ) {
@@ -75,5 +79,7 @@ PerThreadMgr::wait_task()
 {
     std::unique_lock<std::mutex> lock(co_globalWaitMut);
     DEBUG_PRINT(DEBUG_PerThreadMgr, "PerThreadMgr %d: starts sleeping...", debugId);
-    co_globalWaitCond.wait_for(lock, std::chrono::milliseconds(Config::Instance().max_wait_task_time));
+    ++globalMediator.sleep_count;
+    co_globalWaitCond.wait_for(lock, std::chrono::microseconds(Config::Instance().max_wait_task_time));
+    --globalMediator.sleep_count;
 }

@@ -10,6 +10,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
+#include <atomic>
 
 #define globalMediator      GlobalMediator::Instance()
 #define co_currentTask      globalMediator.getThisPerThreadMgr()->currentTask()
@@ -47,6 +48,8 @@ public:
     static thread_local int thread_id;
     std::mutex globalWaitMut_;
     std::condition_variable globalWaitCond_;
+
+    std::atomic<int> sleep_count = {0};
 
 private:
     bool terminatable = false;

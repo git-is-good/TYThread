@@ -22,7 +22,7 @@ func massive_creation_test(size int) {
     }
     group.Wait()
     delta := time.Now().Sub(start)
-    fmt.Printf("<Golang:massive_creation:goroutine:%-8d> duration:%v, %v/op\n", size, delta, delta / time.Duration(size))
+    fmt.Printf("<Go  :massive_creation:goroutine:%-8d> duration:%v, %v/op\n", size, delta, delta / time.Duration(size))
 }
 
 const (
@@ -44,7 +44,7 @@ func massive_yield_test(size2 int) {
     }
     group.Wait()
     delta := time.Now().Sub(start)
-    fmt.Printf("<Golang:massive_yield:goroutine:%-6d:total_yield:%v> duration:%v, %v/op\n", size2, N, delta, delta / N)
+    fmt.Printf("<Go  :massive_yield:goroutine:%-6d:total_yield:%v> duration:%v, %v/op\n", size2, N, delta, delta / N)
 }
 
 const M = 1600
@@ -88,22 +88,56 @@ func dense_mat_mut_test(ntasks int) {
     }
     group.Wait()
     delta := time.Now().Sub(start)
-    fmt.Printf("<Golang:DenseMatMut:goroutine:%-4d> duration:%v\n", ntasks, delta)
+    fmt.Printf("<Go  :DenseMatMut:goroutine:%-4d> duration:%v\n", ntasks, delta)
 }
 
-func main() {
-    massive_yield_test(1)
-    massive_yield_test(10)
-    massive_yield_test(100)
-    massive_yield_test(1000)
-    massive_yield_test(10000)
-    massive_yield_test(100000)
+func complex_scheduling_test(num int) {
+    from := int64(0)
+    gap := int64(1)
+    test_size := 10000
 
-    massive_creation_test(1000)
-    massive_creation_test(10000)
-    massive_creation_test(100000)
-    massive_creation_test(1000000)
-    massive_creation_test(10000000)
+    var biggroup sync.WaitGroup
+    biggroup.Add(test_size)
+    start := time.Now()
+
+    for count := 0; count < test_size; count++ {
+        go func () {
+            var group sync.WaitGroup
+            group.Add(num)
+
+            ress := make([]int64, num)
+
+            for i := 0; i < num; i++ {
+                go func(i int) {
+                    for k := from + gap * int64(i); k < from + gap * (int64(i) + 1); k++ {
+                        ress[i] += k
+                    }
+                    group.Done()
+                } (i)
+            }
+            group.Wait()
+            biggroup.Done()
+        } ()
+    }
+    biggroup.Wait()
+    delta := time.Now().Sub(start)
+    fmt.Printf("<Go  :complex_task_scheduling:%-4dx%-4d> duration:%v\n",
+            test_size, num, delta)
+}
+
+
+func main() {
+//    massive_yield_test(100)
+//    massive_yield_test(1000)
+//    massive_yield_test(10000)
+//    massive_yield_test(100000)
+//
+//    massive_creation_test(10000)
+//    massive_creation_test(100000)
+//    massive_creation_test(1000000)
+//    massive_creation_test(10000000)
+
+    complex_scheduling_test(1000)
 
 //    dense_mat_mut_test(4)
 //    dense_mat_mut_test(40)

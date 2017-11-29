@@ -23,7 +23,7 @@ struct TimeInterval {
     ~TimeInterval() {
         auto period = std::chrono::high_resolution_clock::now() - start;
         if ( nops != 0 ) {
-            printf("<%s> duration: %-9.3lfms, %lf ns/op\n", message.c_str(), 
+            printf("<%s> duration: %-9.3lfms, %-7.3lf ns/op\n", message.c_str(), 
                     std::chrono::duration<double, std::milli>(period).count(),
                     (double)std::chrono::duration_cast<std::chrono::nanoseconds>(period).count() / nops
                   );
@@ -79,7 +79,7 @@ void massive_creation_test(long size) {
     int sum = 0;
     {
         char msg[128];
-        snprintf(msg, 128, "YamiThread:massive_creation:coroutine: %-8ld", size);
+        snprintf(msg, 128, "Yami:massive_creation:coroutine: %-8ld", size);
         TimeInterval __(msg, size);
         for ( long i = 0; i < size; i++ ) {
             go([&sum, &latch] () {
@@ -100,7 +100,7 @@ massive_yield_test(int coro)
     latch.add(coro);
     {
         char msg[128];
-        snprintf(msg, 128, "YamiThread:massive_yield:coroutine: %-6d", coro);
+        snprintf(msg, 128, "Yami:massive_yield:coroutine: %-6d:total_yield: %d", coro, N);
         TimeInterval __(msg, N);
 
         for ( int i = 0; i < coro; ++i ) {
@@ -118,31 +118,43 @@ massive_yield_test(int coro)
 }
 
 void
-math_problem1(long from, long gap, long num)
+complex_scheduling_test(int test_size, int num)
 {
-    FOR_N_TIMES(100000) {
-        go ([from, gap, num] () {
-            CountDownLatch latch;
-            latch.add(num);
-        
-            std::vector<long> ress(num);
-        
-            for ( long i = 0; i < num; ++i ) {
-                go( [&ress, &latch, from, gap, i] () {
-                    for ( long k = from + gap * i; k < from + gap * (i + 1); ++k ) {
-                        ress[i] += k;
-                    }
-                    latch.down();
-                });
-            }
-        
-            latch.wait();
-        
-            /* pitfal, if 0L not specified, template deduction to 0 int, integer overflow */
-            long total = std::accumulate(ress.begin(), ress.end(), 0L);
-//            printf("from %ld, gap %ld, num %ld: total: %ld\n",
-//                    from, gap, num, total);
-        });
+    long from = 0;
+    long gap = 1;
+    
+    CountDownLatch bigLatch;
+    bigLatch.add(test_size);
+
+    {
+        char msg[128];
+        snprintf(msg, 128, "Yami:complex_scheduling_test:%-5dx%-5d", test_size, num);
+        TimeInterval _(msg);
+        FOR_N_TIMES(test_size) {
+            go ([&bigLatch, from, gap, num] () {
+                CountDownLatch latch;
+                latch.add(num);
+
+                std::vector<long> ress(num);
+
+                for ( long i = 0; i < num; ++i ) {
+                    go_pure( [&ress, &latch, from, gap, i] () {
+                        for ( long k = from + gap * i; k < from + gap * (i + 1); ++k ) {
+                            ress[i] += k;
+                        }
+                        latch.down();
+                    });
+                }
+
+                latch.wait();
+
+    //            long total = std::accumulate(ress.begin(), ress.end(), 0L);
+    //            printf("from %ld, gap %ld, num %ld: total: %ld\n",
+    //                    from, gap, num, total);
+                bigLatch.down();
+            });
+        }
+        bigLatch.wait();
     }
 }
 
@@ -181,7 +193,7 @@ dense_mat_mut_test(int ntasks = Config::Instance().num_of_threads)
 
     {
         char msg[128];
-        snprintf(msg, 128, "YamiThread:DenseMatMut:coroutine:%-4d", ntasks);
+        snprintf(msg, 128, "Yami:DenseMatMut:coroutine:%-4d", ntasks);
 
         TimeInterval __(msg);
         if ( M % ntasks != 0 ) {
@@ -240,11 +252,6 @@ run_benchmarks()
 
     go ( [] () {
         TaskBundle()
-            .registe(go(std::bind(massive_yield_test, 1)))
-            .wait()
-            ;
-    
-        TaskBundle()
             .registe(go(std::bind(massive_yield_test, 10)))
             .wait()
             ;
@@ -269,12 +276,6 @@ run_benchmarks()
             .wait()
             ;
 
-    
-        TaskBundle()
-            .registe(go(std::bind(massive_creation_test, 1000)))
-            .wait()
-            ;
-    
         TaskBundle()
             .registe(go(std::bind(massive_creation_test, 10000)))
             .wait()
@@ -295,6 +296,10 @@ run_benchmarks()
             .wait()
             ;
 
+        TaskBundle()
+            .registe(go(std::bind(complex_scheduling_test, 1000, 10000)))
+            .wait()
+            ;
 
 //        TaskBundle()
 //            .registe(go(std::bind(dense_mat_mut_test, Config::Instance().num_of_threads)))
@@ -332,7 +337,7 @@ setup_at_once()
         latch.add(4);
 
         go([&latch] () {
-                math_problem1(0L, 1000L, 1000L);
+                complex_scheduling_test(10000, 1000);
                 latch.down();
         });
 
@@ -361,8 +366,9 @@ setup_at_once()
 int
 main()
 {
-    run_benchmarks();
+//    run_benchmarks();
 //    setup_at_once();
+    setup(std::bind(complex_scheduling_test, 10000, 1000));
 //    setup(dense_mat_mut_test, Config::Instance().num_of_threads);
 //    setup(std::bind(math_problem1, 0L, 1000L, 1000L));
 //    setup(std::bind(massive_yield_test, 10000));
