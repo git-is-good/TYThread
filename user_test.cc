@@ -296,25 +296,25 @@ run_benchmarks()
             ;
 
 
-        TaskBundle()
-            .registe(go(std::bind(dense_mat_mut_test, Config::Instance().num_of_threads)))
-            .wait()
-            ;
-
-        TaskBundle()
-            .registe(go(std::bind(dense_mat_mut_test, 40)))
-            .wait()
-            ;
-
-        TaskBundle()
-            .registe(go(std::bind(dense_mat_mut_test, 400)))
-            .wait()
-            ;
-
-        TaskBundle()
-            .registe(go(std::bind(dense_mat_mut_test, 800)))
-            .wait()
-            ;
+//        TaskBundle()
+//            .registe(go(std::bind(dense_mat_mut_test, Config::Instance().num_of_threads)))
+//            .wait()
+//            ;
+//
+//        TaskBundle()
+//            .registe(go(std::bind(dense_mat_mut_test, 40)))
+//            .wait()
+//            ;
+//
+//        TaskBundle()
+//            .registe(go(std::bind(dense_mat_mut_test, 400)))
+//            .wait()
+//            ;
+//
+//        TaskBundle()
+//            .registe(go(std::bind(dense_mat_mut_test, 800)))
+//            .wait()
+//            ;
 
         co_terminate();
     });

@@ -105,9 +105,9 @@ func main() {
     massive_creation_test(1000000)
     massive_creation_test(10000000)
 
-    dense_mat_mut_test(4)
-    dense_mat_mut_test(40)
-    dense_mat_mut_test(400)
-    dense_mat_mut_test(800)
+//    dense_mat_mut_test(4)
+//    dense_mat_mut_test(40)
+//    dense_mat_mut_test(400)
+//    dense_mat_mut_test(800)
 
 }

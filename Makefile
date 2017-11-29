@@ -25,24 +25,29 @@ HEADERS :=					\
 
 LIBS := -lboost_context
 
-OBJS := 					\
+YAMITHREAD_LIB_OBJS :=		\
 	GlobalMediator.o		\
 	PerThreadMgr.o			\
 	Task.o					\
-	TaskGroup.o
+	TaskGroup.o				\
+
+OBJS := $(YAMITHREAD_LIB_OBJS) user_test.o GlobalMediator_test.o
 
 GENLIBS := libyami_thread.a
 
-EXECS := user_test
+EXECS := user_test GlobalMediator_test
 
 TARGETS := $(GENLIBS) $(EXECS)
 
 all: $(TARGETS)
 
-libyami_thread.a: $(OBJS)
-	$(AR) rcs $@ $(OBJS)
+libyami_thread.a: $(YAMITHREAD_LIB_OBJS)
+	$(AR) rcs $@ $(YAMITHREAD_LIB_OBJS)
 
 user_test: user_test.o $(GENLIBS)
+	$(CC) $(CXXFLAGS) $(LIBPATH) -o $@ $^ $(LIBS)
+
+GlobalMediator_test: GlobalMediator_test.o $(GENLIBS)
 	$(CC) $(CXXFLAGS) $(LIBPATH) -o $@ $^ $(LIBS)
 
 omp_test: omp_test.c
@@ -55,4 +60,4 @@ clean:
 	rm -rf *~ *.dSYM a.out omp_test
 
 clean-real:
-	rm -rf *~ *.dSYM a.out $(TARGETS) $(GENLIBS) $(OBJS) omp_test
+	rm -rf *~ *.dSYM a.out omp_test $(TARGETS) $(GENLIBS) $(OBJS)
