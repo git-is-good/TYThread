@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <numeric>
 
-constexpr int N = 5000000;
 
 struct TimeInterval {
     std::chrono::time_point<std::chrono::high_resolution_clock>  start;
@@ -64,7 +63,6 @@ void bench1_naive(int size) {
                     );
         }
         bundle.wait();
-        printf("%d\n", sum);
     }
 }
 
@@ -82,18 +80,18 @@ void bench1(long size) {
                 });
         }
         latch.wait();
-        printf("%d\n", sum);
     }
 }
 
 
+constexpr int N = 5000000;
 void
 bench2(int coro)
 {
     CountDownLatch latch;
     latch.add(coro);
     {
-        TimeInterval __("bench2:size:" + std::to_string(coro) + ":N:" + std::to_string(N));
+        TimeInterval __("bench2:size:" + std::to_string(coro) + ":N:" + std::to_string(N), N);
 
         for ( int i = 0; i < coro; ++i ) {
             go( [i, coro, &latch] () {
@@ -218,10 +216,47 @@ setup(std::function<void()> co_main)
     co_mainloop();
 }
 
+void
+setup_at_once()
+{
+    co_init();
+
+    go([] () {
+        CountDownLatch latch;
+        latch.add(4);
+
+        go([&latch] () {
+                math_problem1(0L, 1000L, 1000L);
+                latch.down();
+        });
+
+        go([&latch] () {
+                bench2(10000);
+                latch.down();
+        });
+
+        go([&latch] () {
+                bench1(1000000);
+                latch.down();
+        });
+
+        go([&latch] () {
+                math_problem2();
+                latch.down();
+        });
+
+        latch.wait();
+        co_terminate();
+    });
+
+    co_mainloop();
+}
+
 int
 main()
 {
-    setup(math_problem2);
+    setup_at_once();
+//    setup(math_problem2);
 //    setup(std::bind(math_problem1, 0L, 1000L, 1000L));
 //    setup(std::bind(bench2, 10000));
 //    setup(std::bind(bench1, 1000000));
