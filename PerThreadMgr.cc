@@ -15,13 +15,10 @@ PerThreadMgr globalTaskMgr;
 bool
 PerThreadMgr::runInStackPureTask(TaskPtr &poped)
 {
-//    auto res_pair = runnable_queue->try_dequeue();
     TaskPtr ptr = runnable_queue->dequeue();
 
     //TODO: check hasEnoughStack()
-//    if ( res_pair.first ) {
       if ( ptr ) {
-//        TaskPtr ptr = std::move(res_pair.second);
         if ( ptr->isPure ) {
             DEBUG_PRINT(DEBUG_PerThreadMgr,
                     "PerThreadMgr %d: about to run in-stack task %d...", debugId, ptr->debugId);
@@ -34,7 +31,6 @@ PerThreadMgr::runInStackPureTask(TaskPtr &poped)
         } else {
             DEBUG_PRINT(DEBUG_PerThreadMgr,
                     "PerThreadMgr %d: Task %d not pure, cannot in stack...", debugId, ptr->debugId);
-//            runnable_queue->enqueue(ptr);
             poped = std::move(ptr);
             return false;
         }
@@ -49,11 +45,8 @@ bool
 PerThreadMgr::run_runnable()
 {
     TaskPtr ptr = runnable_queue->dequeue();
-//    auto res_pair = runnable_queue->try_dequeue();
-//    if ( res_pair.first ) {
     if ( ptr ) {
         // runnable found
-//        TaskPtr ptr = std::move(res_pair.second);
         DEBUG_PRINT(DEBUG_PerThreadMgr,
                 "PerThreadMgr %d: runnable got locally: task %d...", debugId, ptr->debugId);
 
@@ -115,6 +108,5 @@ PerThreadMgr::wait_task()
 {
     std::unique_lock<std::mutex> lock(co_globalWaitMut);
     DEBUG_PRINT(DEBUG_PerThreadMgr, "PerThreadMgr %d: starts sleeping...", debugId);
-//    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     co_globalWaitCond.wait_for(lock, std::chrono::milliseconds(Config::Instance().max_wait_task_time));
 }

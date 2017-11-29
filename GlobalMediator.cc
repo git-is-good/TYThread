@@ -110,23 +110,17 @@ GlobalMediator::run_once()
             continue;
         }
 
-//        auto pair = threadLocalInfos[i]->pmgr.runnable_queue->try_dequeue_half();
         auto skiplistptr = threadLocalInfos[i]->pmgr.runnable_queue->dequeue_half();
         if ( !skiplistptr ) {
-//        if ( !pair.first ) {
-            // nothing there
             continue;
         }
 
         // steal succeeded
         DEBUG_PRINT(DEBUG_Special | DEBUG_GlobalMediator, "Thread %d: stole from %d %lu tasks",
                 thread_id, i, skiplistptr->size());
-//                thread_id, i, pair.second.size());
-//        mgr->runnable_queue->enqueue_by_move(pair.second.begin(), pair.second.end());
         MUST_TRUE(mgr->runnable_queue->size() == 0, "should be empty:%lu",
                 mgr->runnable_queue->size());
         mgr->runnable_queue->replace(skiplistptr);
-        //mgr->runnable_queue = std::move(skiplistptr);
         stealSuccess = true;
         break;
     }
