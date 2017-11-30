@@ -9,6 +9,8 @@
 #include <numeric>
 #include <exception>
 
+int fake_sum;
+FILE *trash;
 
 struct TimeInterval {
     std::chrono::time_point<std::chrono::high_resolution_clock>  start;
@@ -76,18 +78,20 @@ void massive_creation_test(long size) {
     CountDownLatch latch;
     latch.add(size);
 
-    int sum = 0;
     {
         char msg[128];
         snprintf(msg, 128, "Yami:massive_creation:coroutine: %-8ld", size);
         TimeInterval __(msg, size);
         for ( long i = 0; i < size; i++ ) {
-            go([&sum, &latch] () {
-                    sum ++;
+            go([&latch] () {
+                    fake_sum ++;
                     latch.down();
                 });
         }
         latch.wait();
+
+        /* avoid optimization */
+        fprintf(trash, "%d", fake_sum);
     }
 }
 
@@ -117,44 +121,36 @@ massive_yield_test(int coro)
     }
 }
 
+
 void
 complex_scheduling_test(int test_size, int num)
 {
-    long from = 0;
-    long gap = 1;
-    
     CountDownLatch bigLatch;
     bigLatch.add(test_size);
 
     {
         char msg[128];
-        snprintf(msg, 128, "Yami:complex_scheduling_test:%-5dx%-5d", test_size, num);
-        TimeInterval _(msg);
+        snprintf(msg, 128, "Yami:complex_scheduling:%-6dx%-6d", test_size, num);
+        TimeInterval _(msg, test_size * num);
         FOR_N_TIMES(test_size) {
-            go ([&bigLatch, from, gap, num] () {
+            go ([&bigLatch, num] () {
                 CountDownLatch latch;
                 latch.add(num);
 
-                std::vector<long> ress(num);
-
                 for ( long i = 0; i < num; ++i ) {
-                    go_pure( [&ress, &latch, from, gap, i] () {
-                        for ( long k = from + gap * i; k < from + gap * (i + 1); ++k ) {
-                            ress[i] += k;
-                        }
+                    go( [&latch] () {
+                        fake_sum += 57;
                         latch.down();
                     });
                 }
-
                 latch.wait();
-
-    //            long total = std::accumulate(ress.begin(), ress.end(), 0L);
-    //            printf("from %ld, gap %ld, num %ld: total: %ld\n",
-    //                    from, gap, num, total);
                 bigLatch.down();
             });
         }
         bigLatch.wait();
+
+        /* avoid optimization */
+        fprintf(trash, "%d", fake_sum);
     }
 }
 
@@ -297,7 +293,22 @@ run_benchmarks()
             ;
 
         TaskBundle()
+            .registe(go(std::bind(complex_scheduling_test, 100, 100000)))
+            .wait()
+            ;
+
+        TaskBundle()
             .registe(go(std::bind(complex_scheduling_test, 1000, 10000)))
+            .wait()
+            ;
+
+        TaskBundle()
+            .registe(go(std::bind(complex_scheduling_test, 10000, 1000)))
+            .wait()
+            ;
+
+        TaskBundle()
+            .registe(go(std::bind(complex_scheduling_test, 100000, 100)))
             .wait()
             ;
 
@@ -366,6 +377,8 @@ setup_at_once()
 int
 main()
 {
+    trash = fopen("/dev/null", "w");
+    assert(trash);
     run_benchmarks();
 //    setup_at_once();
 //    setup(std::bind(complex_scheduling_test, 10000, 1000));

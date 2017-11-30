@@ -22,7 +22,9 @@ func massive_creation_test(size int) {
     }
     group.Wait()
     delta := time.Now().Sub(start)
-    fmt.Printf("<Go  :massive_creation:goroutine:%-8d> duration:%v, %v/op\n", size, delta, delta / time.Duration(size))
+    deltaf_nano := float32(delta / time.Nanosecond)
+    deltaf := deltaf_nano / 1000000
+    fmt.Printf("<Go  :massive_creation:goroutine:%-8d> duration: duration:%-9.3fms, %-7.3f ns/op\n", size, deltaf, deltaf_nano / float32(size))
 }
 
 const (
@@ -44,7 +46,9 @@ func massive_yield_test(size2 int) {
     }
     group.Wait()
     delta := time.Now().Sub(start)
-    fmt.Printf("<Go  :massive_yield:goroutine:%-6d:total_yield:%v> duration:%v, %v/op\n", size2, N, delta, delta / N)
+    deltaf_nano := float32(delta / time.Nanosecond)
+    deltaf := deltaf_nano / 1000000
+    fmt.Printf("<Go  :massive_yield:goroutine:%-6d:total_yield:%v> duration:%-9.3fms, %-7.3f ns/op\n", size2, N, deltaf, deltaf_nano / N)
 }
 
 const M = 1600
@@ -88,14 +92,12 @@ func dense_mat_mut_test(ntasks int) {
     }
     group.Wait()
     delta := time.Now().Sub(start)
-    fmt.Printf("<Go  :DenseMatMut:goroutine:%-4d> duration:%v\n", ntasks, delta)
+    fmt.Printf("<Go  :DenseMatMut:goroutine:%-4d> duration:%-9.3fms, %-7.3f ns/op\n", ntasks, delta)
 }
 
-func complex_scheduling_test(num int) {
-    from := int64(0)
-    gap := int64(1)
-    test_size := 10000
+var fake_sum int
 
+func complex_scheduling_test(test_size int, num int) {
     var biggroup sync.WaitGroup
     biggroup.Add(test_size)
     start := time.Now()
@@ -105,15 +107,11 @@ func complex_scheduling_test(num int) {
             var group sync.WaitGroup
             group.Add(num)
 
-            ress := make([]int64, num)
-
             for i := 0; i < num; i++ {
-                go func(i int) {
-                    for k := from + gap * int64(i); k < from + gap * (int64(i) + 1); k++ {
-                        ress[i] += k
-                    }
+                go func() {
+                    fake_sum += 57
                     group.Done()
-                } (i)
+                } ()
             }
             group.Wait()
             biggroup.Done()
@@ -121,8 +119,10 @@ func complex_scheduling_test(num int) {
     }
     biggroup.Wait()
     delta := time.Now().Sub(start)
-    fmt.Printf("<Go  :complex_task_scheduling:%-4dx%-4d> duration:%v\n",
-            test_size, num, delta)
+    deltaf_nano := float32(delta / time.Nanosecond)
+    deltaf := deltaf_nano / 1000000
+    fmt.Printf("<Go  :complex_scheduling:%-6dx%-6d> duration:%-9.3fms, %-7.3f ns/op\n",
+            test_size, num, deltaf, deltaf_nano / float32(test_size * num))
 }
 
 
@@ -137,7 +137,10 @@ func main() {
     massive_creation_test(1000000)
     massive_creation_test(10000000)
 
-    complex_scheduling_test(1000)
+    complex_scheduling_test(100, 100000)
+    complex_scheduling_test(1000, 10000)
+    complex_scheduling_test(10000, 1000)
+    complex_scheduling_test(100000, 100)
 
 //    dense_mat_mut_test(4)
 //    dense_mat_mut_test(40)
