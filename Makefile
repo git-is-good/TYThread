@@ -6,7 +6,7 @@ AR := ar
 
 OMPCC := /usr/local/opt/llvm/bin/clang
 OMPLIBPATH := -L/usr/local/opt/llvm/lib
-OMPCXXFLAGS := -fopenmp
+OMPCXXFLAGS := -fopenmp -O2
 
 HEADERS :=					\
 	Config.hh				\
@@ -51,6 +51,9 @@ GlobalMediator_test: GlobalMediator_test.o $(GENLIBS)
 	$(CC) $(CXXFLAGS) $(LIBPATH) -o $@ $^ $(LIBS)
 
 omp_test: omp_test.c
+	$(OMPCC) $(OMPCXXFLAGS) $(OMPLIBPATH) -o $@ $^
+
+omp_merge_sort: omp_merge_sort.c
 	$(OMPCC) $(OMPCXXFLAGS) $(OMPLIBPATH) -o $@ $^
 
 %.o: %.cc $(HEADERS)

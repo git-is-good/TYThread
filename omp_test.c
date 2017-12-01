@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-const int N = 1600;
+const int N = 2000;
 int A[N][N], B[N][N];
 int C[N][N], C1[N][N];
 int dense_mat_mut_test(void) {

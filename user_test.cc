@@ -8,6 +8,9 @@
 #include <algorithm>
 #include <numeric>
 #include <exception>
+#include <iterator>
+#include <cstdlib>
+#include <ctime>
 
 int fake_sum;
 FILE *trash;
@@ -159,7 +162,7 @@ complex_scheduling_test(int test_size, int num)
 #include <stdlib.h>
 #include <time.h>
 
-const int M = 1600;
+const int M = 2000;
 int A[M][M], B[M][M];
 int C1[M][M], C2[M][M];
 
@@ -226,6 +229,58 @@ dense_mat_mut_test(int ntasks = Config::Instance().num_of_threads)
 //        }
 //    }
 //    printf("Passed.\n");
+}
+
+template<class Iterator>
+void
+merge_sort(Iterator first, Iterator last, std::size_t min_diff)
+{
+    auto diff = std::distance(first, last);
+    if ( diff < min_diff ) {
+        std::stable_sort(first, last);
+        return;
+    }
+
+    auto middle = first + diff / 2;
+
+    TaskBundle bundle;
+
+//    bundle.registe(go(merge_sort<Iterator>, first, middle, min_diff));
+
+//    co_yield;
+
+//    bundle
+//        .registe(go(merge_sort<Iterator>, middle, last, min_diff))
+//        .wait()
+//        ;
+
+    TaskBundle()
+        .registe(go(merge_sort<Iterator>, first, middle, min_diff))
+        .registe(go(merge_sort<Iterator>, middle, last, min_diff))
+        .wait()
+        ;
+
+    std::inplace_merge(first, middle, last);
+}
+
+void
+merge_sort_test(std::size_t sz, std::size_t min_diff)
+{
+    std::vector<int> v(sz);
+    std::srand(std::time(NULL));
+
+    std::generate(v.begin(), v.end(), std::rand);
+
+    {
+        char msg[128];
+        snprintf(msg, 128, "Yami:merge_sort:%-10lu:min_diff:%-9lu", sz, min_diff);
+        TimeInterval _(msg, sz);
+        merge_sort(v.begin(), v.end(), min_diff);
+    }
+
+    for ( auto iter = v.begin(); iter + 1 != v.end(); ++iter ) {
+        assert(*iter <= *(iter + 1));
+    }
 }
 
 void
@@ -312,25 +367,55 @@ run_benchmarks()
             .wait()
             ;
 
+        TaskBundle()
+            .registe(go(std::bind(merge_sort_test, 1000000000LU, 100000000LU)))
+            .wait()
+            ;
+
+        TaskBundle()
+            .registe(go(std::bind(merge_sort_test, 1000000000LU, 10000000LU)))
+            .wait()
+            ;
+
+        TaskBundle()
+            .registe(go(std::bind(merge_sort_test, 1000000000LU, 1000000LU)))
+            .wait()
+            ;
+
+        TaskBundle()
+            .registe(go(std::bind(merge_sort_test, 1000000000LU, 100000LU)))
+            .wait()
+            ;
+
+        TaskBundle()
+            .registe(go(std::bind(merge_sort_test, 1000000000LU, 10000LU)))
+            .wait()
+            ;
+
+        TaskBundle()
+            .registe(go(std::bind(merge_sort_test, 1000000000LU, 1000LU)))
+            .wait()
+            ;
+
 //        TaskBundle()
 //            .registe(go(std::bind(dense_mat_mut_test, Config::Instance().num_of_threads)))
 //            .wait()
 //            ;
-//
-//        TaskBundle()
-//            .registe(go(std::bind(dense_mat_mut_test, 40)))
-//            .wait()
-//            ;
-//
-//        TaskBundle()
-//            .registe(go(std::bind(dense_mat_mut_test, 400)))
-//            .wait()
-//            ;
-//
-//        TaskBundle()
-//            .registe(go(std::bind(dense_mat_mut_test, 800)))
-//            .wait()
-//            ;
+
+        TaskBundle()
+            .registe(go(std::bind(dense_mat_mut_test, 10)))
+            .wait()
+            ;
+
+        TaskBundle()
+            .registe(go(std::bind(dense_mat_mut_test, 100)))
+            .wait()
+            ;
+
+        TaskBundle()
+            .registe(go(std::bind(dense_mat_mut_test, 1000)))
+            .wait()
+            ;
 
         co_terminate();
     });
@@ -380,6 +465,7 @@ main()
     trash = fopen("/dev/null", "w");
     assert(trash);
     run_benchmarks();
+//    setup(std::bind(merge_sort_test, 1000000000LU, 1000000LU));
 //    setup_at_once();
 //    setup(std::bind(complex_scheduling_test, 10000, 1000));
 //    setup(dense_mat_mut_test, Config::Instance().num_of_threads);

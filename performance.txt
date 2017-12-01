@@ -1,0 +1,50 @@
+---- Start running YamiThread... ----
+<Yami:massive_yield:coroutine: 10    :total_yield: 5000000> duration: 209.876  ms, 41.975  ns/op
+<Yami:massive_yield:coroutine: 100   :total_yield: 5000000> duration: 203.871  ms, 40.774  ns/op
+<Yami:massive_yield:coroutine: 1000  :total_yield: 5000000> duration: 215.597  ms, 43.119  ns/op
+<Yami:massive_yield:coroutine: 10000 :total_yield: 5000000> duration: 216.099  ms, 43.220  ns/op
+<Yami:massive_yield:coroutine: 100000:total_yield: 5000000> duration: 325.808  ms, 65.162  ns/op
+<Yami:massive_creation:coroutine: 10000   > duration: 2.995    ms, 299.504 ns/op
+<Yami:massive_creation:coroutine: 100000  > duration: 34.211   ms, 342.111 ns/op
+<Yami:massive_creation:coroutine: 1000000 > duration: 338.350  ms, 338.350 ns/op
+<Yami:massive_creation:coroutine: 10000000> duration: 3329.278 ms, 332.928 ns/op
+<Yami:complex_scheduling:100   x100000> duration: 1278.673 ms, 127.867 ns/op
+<Yami:complex_scheduling:1000  x10000 > duration: 1264.215 ms, 126.422 ns/op
+<Yami:complex_scheduling:10000 x1000  > duration: 1383.042 ms, 138.304 ns/op
+<Yami:complex_scheduling:100000x100   > duration: 1410.851 ms, 141.085 ns/op
+<Yami:merge_sort:1000000000:min_diff:100000000> duration: 34666.756ms, 34.667  ns/op
+<Yami:merge_sort:1000000000:min_diff:10000000 > duration: 34647.288ms, 34.647  ns/op
+<Yami:merge_sort:1000000000:min_diff:1000000  > duration: 32899.882ms, 32.900  ns/op
+<Yami:merge_sort:1000000000:min_diff:100000   > duration: 34210.694ms, 34.211  ns/op
+<Yami:merge_sort:1000000000:min_diff:10000    > duration: 35873.633ms, 35.874  ns/op
+<Yami:merge_sort:1000000000:min_diff:1000     > duration: 36395.299ms, 36.395  ns/op
+<Yami:DenseMatMut:coroutine:10  > duration: 14534.585693ms
+<Yami:DenseMatMut:coroutine:100 > duration: 14534.879801ms
+<Yami:DenseMatMut:coroutine:1000> duration: 14284.312487ms
+
+---- Start running Golang... ----
+<Go  :massive_yield:goroutine:100   :total_yield:5000000> duration:998.481  ms, 199.696 ns/op
+<Go  :massive_yield:goroutine:1000  :total_yield:5000000> duration:982.018  ms, 196.404 ns/op
+<Go  :massive_yield:goroutine:10000 :total_yield:5000000> duration:1110.785 ms, 222.157 ns/op
+<Go  :massive_yield:goroutine:100000:total_yield:5000000> duration:1484.688 ms, 296.938 ns/op
+<Go  :massive_creation:goroutine:10000   > duration: duration:2.966    ms, 296.592 ns/op
+<Go  :massive_creation:goroutine:100000  > duration: duration:28.544   ms, 285.435 ns/op
+<Go  :massive_creation:goroutine:1000000 > duration: duration:283.125  ms, 283.125 ns/op
+<Go  :massive_creation:goroutine:10000000> duration: duration:2957.036 ms, 295.704 ns/op
+<Go  :complex_scheduling:100   x100000> duration:24114.926ms, 2411.493 ns/op
+<Go  :complex_scheduling:1000  x10000 > duration:32527.699ms, 3252.770 ns/op
+<Go  :complex_scheduling:10000 x1000  > duration:26626.443ms, 2662.644 ns/op
+<Go  :complex_scheduling:100000x100   > duration:12809.590ms, 1280.959 ns/op
+
+---- Start running OpenMP... ----
+<OpenMP:DenseMatMut> duration 17401.643991ms.
+-OpenMP Recursive Mergesort-	
+Array size = 1000000000
+Processes = 6
+Processors = 8
+Start = 1512125261.17
+End = 1512125303.21
+Elapsed = 42.04
+-Success-
+
+Done...
