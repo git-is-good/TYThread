@@ -1,7 +1,8 @@
 CC := clang++
 INCLUDEPATH := -I/usr/local/include
 LIBPATH := -L/usr/local/lib
-CXXFLAGS := --std=c++14 -g -O2
+CXXFLAGS := --std=c++14 -g -O2 -fno-builtin-malloc -fno-builtin-calloc \
+	-fno-builtin-realloc -fno-builtin-free
 AR := ar
 
 OMPCC := /usr/local/opt/llvm/bin/clang
@@ -24,7 +25,7 @@ HEADERS :=					\
 	util.hh					\
 	mpi_hooks.hh
 
-LIBS := -lboost_context
+LIBS := -lboost_context -ltcmalloc
 
 YAMITHREAD_LIB_OBJS :=		\
 	GlobalMediator.o		\
@@ -37,7 +38,7 @@ OBJS := $(YAMITHREAD_LIB_OBJS) user_test.o GlobalMediator_test.o
 
 GENLIBS := libyami_thread.a
 
-EXECS := user_test GlobalMediator_test
+EXECS := user_test GlobalMediator_test skynet_yami
 
 TARGETS := $(GENLIBS) $(EXECS)
 
@@ -47,6 +48,9 @@ libyami_thread.a: $(YAMITHREAD_LIB_OBJS)
 	$(AR) rcs $@ $(YAMITHREAD_LIB_OBJS)
 
 user_test: user_test.o $(GENLIBS)
+	$(CC) $(CXXFLAGS) $(LIBPATH) -o $@ $^ $(LIBS)
+
+skynet_yami: skynet_yami.o $(GENLIBS)
 	$(CC) $(CXXFLAGS) $(LIBPATH) -o $@ $^ $(LIBS)
 
 GlobalMediator_test: GlobalMediator_test.o $(GENLIBS)

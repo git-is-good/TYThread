@@ -216,14 +216,20 @@ std::unique_ptr<ObjectPoolMediator<Task>> TaskPool::mediator;
 void*
 Task::operator new(std::size_t sz)
 {
-//    return ::operator new(sz);
+#ifdef ENABLE_OBJECT_POOL
     MUST_TRUE(sz == sizeof(Task), "Task new operator only for Task object");
     return TaskPool::Instance()->my_alloc(globalMediator.thread_id);
+#else
+    return ::operator new(sz);
+#endif /* ENABLE_OBJECT_POOL */
 }
 
 void
 Task::operator delete(void *ptr, std::size_t)
 {
-//    ::operator delete (ptr);
+#ifdef ENABLE_OBJECT_POOL
     TaskPool::Instance()->my_release(globalMediator.thread_id, ptr);
+#else
+    ::operator delete (ptr);
+#endif /* ENABLE_OBJECT_POOL */
 }

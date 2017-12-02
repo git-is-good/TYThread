@@ -25,8 +25,10 @@ GlobalMediator::Init()
         ptr = std::make_unique<ThreadLocalInfo>();
     }
 
+#ifdef ENABLE_OBJECT_POOL
     /* initialize task pool */
     TaskPool::Init();
+#endif /* ENABLE_OBJECT_POOL */
     
     /* main thread has thread_id 0 */
     thread_id = 0;
@@ -112,7 +114,10 @@ GlobalMediator::run()
             break;
         } else {
             // main thread, needs to sweep all children
+#ifdef ENABLE_OBJECT_POOL
             TaskPool::Terminate();
+#endif
+            globalWaitCond_.notify_all();
             for ( auto &thread : children ) {
                 thread.join();
             }

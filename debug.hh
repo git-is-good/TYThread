@@ -34,7 +34,7 @@ enum {
     } while (0)
 
 /* turn off only for release */
-#define __MUST__TRUE__ON__
+//#define __MUST__TRUE__ON__
 
 #ifdef __MUST__TRUE__ON__
 
