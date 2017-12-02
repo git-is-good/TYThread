@@ -15,22 +15,21 @@
 class TaskGroup : public NonCopyable {
 public:
     void wait();
-    TaskGroup &registe(TaskPtr &ptr);
-    TaskGroup &registe(TaskPtr &&ptr) {
-        registe(ptr);
-        return *this;
-    }
+    TaskGroup &registe(TaskPtr ptr);
+//    TaskGroup &registe(TaskPtr &&ptr) {
+//        registe(ptr);
+//        return *this;
+//    }
     void informDone(TaskPtr ptr);
     bool resumeIfNothingToWait(TaskPtr &ptr);
-    void pushTaskPtr(TaskPtr &&ptr);
     
     ~TaskGroup();
 
     int debugId = ++debugId_counter;
+    std::atomic<int>    blocking_count = {0};
 private:
     friend class Task;
     TaskPtr blockedTask;
-    std::vector<TaskPtr> taskPtrs;
     Spinlock            mut_;
 
     static std::atomic<int> debugId_counter;

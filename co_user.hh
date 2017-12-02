@@ -77,12 +77,11 @@ public:
     }
     void down() {
         if ( --counter__ == 0 ) {
-            // last one
-            globalMediator.addRunnable(fakeTask__);
+            fakeTask__->state = Task::Terminated;
+            fakeGroup__.informDone(fakeTask__);
         }
     }
     void wait() {
-        TaskGroup fakeGroup__;
         fakeGroup__
             .registe(fakeTask__)
             .wait();
@@ -90,6 +89,7 @@ public:
 private:
     std::atomic<int>    counter__ = {0};
     TaskPtr             fakeTask__;
+    TaskGroup           fakeGroup__;
 };
 
 void

@@ -120,8 +120,10 @@ Task::addToGroup(TaskGroup *gp)
 
     DEBUG_PRINT(DEBUG_Task, "Task %d addToGroup %d...", debugId, gp->debugId);
     if ( !isFini() ) {
-        groups.push_back(gp);
-        gp->pushTaskPtr(TaskPtr(this));
+        MUST_TRUE(cur_groups + 1 < max_groups, "Too many groups for Task %d", debugId);
+        groups[cur_groups++] = gp;
+//        groups.push_back(gp);
+        ++gp->blocking_count;
         return true;
     } else {
         return false;
@@ -135,9 +137,12 @@ Task::terminate()
     DEBUG_PRINT(DEBUG_Task, "Task %d terminating...", debugId);
     state = Terminated;
 
-    for ( auto group : groups ) {
-        group->informDone(TaskPtr(this));
+    for ( int i = 0; i < cur_groups; ++i ) {
+        groups[i]->informDone(TaskPtr(this));
     }
+//    for ( auto group : groups ) {
+//        group->informDone(TaskPtr(this));
+//    }
 }
 
 const char*

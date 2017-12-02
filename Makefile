@@ -1,8 +1,11 @@
+TCMALLOCFLAGS := -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
+TCMALLOCLIB := -ltcmalloc
+
 CC := clang++
+CXXFLAGS := --std=c++14 -g -O2 $(TCMALLOCFLAGS)
 INCLUDEPATH := -I/usr/local/include
 LIBPATH := -L/usr/local/lib
-CXXFLAGS := --std=c++14 -g -O2 -fno-builtin-malloc -fno-builtin-calloc \
-	-fno-builtin-realloc -fno-builtin-free
+LIBS := -lboost_context $(TCMALLOCLIB)
 AR := ar
 
 OMPCC := /usr/local/opt/llvm/bin/clang
@@ -25,7 +28,6 @@ HEADERS :=					\
 	util.hh					\
 	mpi_hooks.hh
 
-LIBS := -lboost_context -ltcmalloc
 
 YAMITHREAD_LIB_OBJS :=		\
 	GlobalMediator.o		\
@@ -34,7 +36,7 @@ YAMITHREAD_LIB_OBJS :=		\
 	TaskGroup.o				\
 	mpi_hooks.o
 
-OBJS := $(YAMITHREAD_LIB_OBJS) user_test.o GlobalMediator_test.o
+OBJS := $(YAMITHREAD_LIB_OBJS) user_test.o GlobalMediator_test.o skynet_yami.o
 
 GENLIBS := libyami_thread.a
 

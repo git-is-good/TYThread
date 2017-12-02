@@ -12,6 +12,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <array>
 #include <boost/context/all.hpp>
 
 class TaskGroup;
@@ -24,6 +25,7 @@ class Task
     friend class TaskGroup;
     friend class GlobalMediator;
 public:
+    static constexpr int max_groups = 5;
     enum {
         /* when the Task is spawned */
         Initial,
@@ -57,7 +59,6 @@ public:
     }
     ~Task();
     bool addToGroup(TaskGroup *gp);
-    void removeFromGroup(TaskGroup *gp);
     void terminate();
 
     void setPure(bool v = true) { isPure = v; }
@@ -88,7 +89,9 @@ private:
 
     /* this vector will be accessed concurrently */
     TaskGroup               *blockedBy = nullptr;
-    std::vector<TaskGroup*> groups;
+//    std::vector<TaskGroup*> groups;
+    std::array<TaskGroup*, max_groups>  groups;
+    int                     cur_groups = 0;
     Spinlock                mut_;
 
     static std::atomic<int> debugId_counter;

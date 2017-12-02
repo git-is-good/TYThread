@@ -200,8 +200,6 @@ public:
             if ( (res = layers[i]->my_alloc()) != nullptr ) {
                 DEBUG_PRINT_LOCAL("ObjectPool %d, my_allocated %p from layer %i", id, res, i);
                 set_id_and_layer(res->fakeT_, id, i);
-//                res->fakeT_.id_of_creation_pool = id;
-//                res->fakeT_.layer = i;
                 return res;
             }
         }
@@ -214,8 +212,6 @@ public:
 
         res = layers[current_layer]->my_alloc();
         set_id_and_layer(res->fakeT_, id, current_layer);
-//        res->fakeT_.id_of_creation_pool = id;
-//        res->fakeT_.layer = current_layer;
 
         DEBUG_PRINT_LOCAL("ObjectPool %d: all layers are full, increase current_layer to %d, my_allocated %p",
                 id, current_layer, res);
@@ -320,6 +316,7 @@ public:
     public:
         void terminate() {
             terminatable = true;
+            fake_cond_.notify_one();
             daemon_.join();
         };
         operator bool() {
@@ -332,7 +329,10 @@ public:
                     for ( auto &pool : mediator->pools ) {
                         pool->do_period_cleanup();
                     }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(cache_reclaim_period));
+                    {
+                        std::unique_lock<std::mutex> lock(fake_mut_);
+                        fake_cond_.wait_for(lock, std::chrono::milliseconds(cache_reclaim_period));
+                    }
                 }
             });
         }
@@ -341,6 +341,8 @@ public:
         bool terminatable = false;
         bool configed = false;
         std::thread daemon_;
+        std::mutex  fake_mut_;
+        std::condition_variable fake_cond_;
     };
 private:
     std::vector<std::unique_ptr<ObjectPool<T, LockType>>> pools;
@@ -352,14 +354,11 @@ void
 ObjectPool<T, LockType, NLayers>::my_release(FakeEntry<T> *ptr) {
     {
         std::lock_guard<LockType> _(my_release_mut_);
-//        if ( ptr->fakeT_.id_of_creation_pool != id ) {
         if ( read_id(ptr->fakeT_) != id ) {
             /* not created by this pool, thus cache it */
             DEBUG_PRINT_LOCAL("ObjectPool %d: cache a ptr %p from pool:%d,layer:%d, total_cached:%d",
                     id, ptr, read_id(ptr->fakeT_), read_layer(ptr->fakeT_), total_cached + 1);
 
-//            PerIdCache &cache = caches[ptr->fakeT_.id_of_creation_pool];
-//            PerLayerCache<T> &layer = cache[ptr->fakeT_.layer];
             PerIdCache &cache = caches[read_id(ptr->fakeT_)];
             PerLayerCache<T> &layer = cache[read_layer(ptr->fakeT_)];
             if ( layer.tail ) {
@@ -382,7 +381,6 @@ ObjectPool<T, LockType, NLayers>::my_release(FakeEntry<T> *ptr) {
     /* created by this pool, my_release directly */
     {
         std::lock_guard<LockType> _(mut_);
-//        int layer = ptr->fakeT_.layer;
         int layer = read_layer(ptr->fakeT_);
 
         DEBUG_PRINT_LOCAL("ObjectPool %d my_release ptr %p", id, ptr);

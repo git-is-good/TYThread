@@ -1,0 +1,200 @@
+Result: 499999500000
+<Go:Skynet> duration 229 ms.
+Result: 499999500000
+<Go:Skynet> duration 240 ms.
+Result: 499999500000
+<Go:Skynet> duration 235 ms.
+Result: 499999500000
+<Go:Skynet> duration 243 ms.
+Result: 499999500000
+<Go:Skynet> duration 224 ms.
+Result: 499999500000
+<Go:Skynet> duration 254 ms.
+Result: 499999500000
+<Go:Skynet> duration 232 ms.
+Result: 499999500000
+<Go:Skynet> duration 224 ms.
+Result: 499999500000
+<Go:Skynet> duration 234 ms.
+Result: 499999500000
+<Go:Skynet> duration 225 ms.
+Result: 499999500000
+<Go:Skynet> duration 231 ms.
+Result: 499999500000
+<Go:Skynet> duration 235 ms.
+Result: 499999500000
+<Go:Skynet> duration 231 ms.
+Result: 499999500000
+<Go:Skynet> duration 235 ms.
+Result: 499999500000
+<Go:Skynet> duration 229 ms.
+Result: 499999500000
+<Go:Skynet> duration 232 ms.
+Result: 499999500000
+<Go:Skynet> duration 238 ms.
+Result: 499999500000
+<Go:Skynet> duration 236 ms.
+Result: 499999500000
+<Go:Skynet> duration 229 ms.
+Result: 499999500000
+<Go:Skynet> duration 250 ms.
+Result: 499999500000
+<Go:Skynet> duration 235 ms.
+Result: 499999500000
+<Go:Skynet> duration 229 ms.
+Result: 499999500000
+<Go:Skynet> duration 232 ms.
+Result: 499999500000
+<Go:Skynet> duration 235 ms.
+Result: 499999500000
+<Go:Skynet> duration 236 ms.
+Result: 499999500000
+<Go:Skynet> duration 244 ms.
+Result: 499999500000
+<Go:Skynet> duration 235 ms.
+Result: 499999500000
+<Go:Skynet> duration 251 ms.
+Result: 499999500000
+<Go:Skynet> duration 246 ms.
+Result: 499999500000
+<Go:Skynet> duration 231 ms.
+Result: 499999500000
+<Go:Skynet> duration 212 ms.
+Result: 499999500000
+<Go:Skynet> duration 244 ms.
+Result: 499999500000
+<Go:Skynet> duration 247 ms.
+Result: 499999500000
+<Go:Skynet> duration 233 ms.
+Result: 499999500000
+<Go:Skynet> duration 229 ms.
+Result: 499999500000
+<Go:Skynet> duration 260 ms.
+Result: 499999500000
+<Go:Skynet> duration 225 ms.
+Result: 499999500000
+<Go:Skynet> duration 250 ms.
+Result: 499999500000
+<Go:Skynet> duration 239 ms.
+Result: 499999500000
+<Go:Skynet> duration 231 ms.
+Result: 499999500000
+<Go:Skynet> duration 231 ms.
+Result: 499999500000
+<Go:Skynet> duration 234 ms.
+Result: 499999500000
+<Go:Skynet> duration 237 ms.
+Result: 499999500000
+<Go:Skynet> duration 261 ms.
+Result: 499999500000
+<Go:Skynet> duration 242 ms.
+Result: 499999500000
+<Go:Skynet> duration 242 ms.
+Result: 499999500000
+<Go:Skynet> duration 228 ms.
+Result: 499999500000
+<Go:Skynet> duration 238 ms.
+Result: 499999500000
+<Go:Skynet> duration 233 ms.
+Result: 499999500000
+<Go:Skynet> duration 235 ms.
+Result: 499999500000
+<Go:Skynet> duration 236 ms.
+Result: 499999500000
+<Go:Skynet> duration 244 ms.
+Result: 499999500000
+<Go:Skynet> duration 245 ms.
+Result: 499999500000
+<Go:Skynet> duration 231 ms.
+Result: 499999500000
+<Go:Skynet> duration 251 ms.
+Result: 499999500000
+<Go:Skynet> duration 239 ms.
+Result: 499999500000
+<Go:Skynet> duration 225 ms.
+Result: 499999500000
+<Go:Skynet> duration 236 ms.
+Result: 499999500000
+<Go:Skynet> duration 247 ms.
+Result: 499999500000
+<Go:Skynet> duration 216 ms.
+Result: 499999500000
+<Go:Skynet> duration 244 ms.
+Result: 499999500000
+<Go:Skynet> duration 254 ms.
+Result: 499999500000
+<Go:Skynet> duration 248 ms.
+Result: 499999500000
+<Go:Skynet> duration 216 ms.
+Result: 499999500000
+<Go:Skynet> duration 263 ms.
+Result: 499999500000
+<Go:Skynet> duration 234 ms.
+Result: 499999500000
+<Go:Skynet> duration 221 ms.
+Result: 499999500000
+<Go:Skynet> duration 242 ms.
+Result: 499999500000
+<Go:Skynet> duration 229 ms.
+Result: 499999500000
+<Go:Skynet> duration 240 ms.
+Result: 499999500000
+<Go:Skynet> duration 247 ms.
+Result: 499999500000
+<Go:Skynet> duration 270 ms.
+Result: 499999500000
+<Go:Skynet> duration 229 ms.
+Result: 499999500000
+<Go:Skynet> duration 219 ms.
+Result: 499999500000
+<Go:Skynet> duration 218 ms.
+Result: 499999500000
+<Go:Skynet> duration 237 ms.
+Result: 499999500000
+<Go:Skynet> duration 236 ms.
+Result: 499999500000
+<Go:Skynet> duration 226 ms.
+Result: 499999500000
+<Go:Skynet> duration 233 ms.
+Result: 499999500000
+<Go:Skynet> duration 244 ms.
+Result: 499999500000
+<Go:Skynet> duration 250 ms.
+Result: 499999500000
+<Go:Skynet> duration 218 ms.
+Result: 499999500000
+<Go:Skynet> duration 227 ms.
+Result: 499999500000
+<Go:Skynet> duration 236 ms.
+Result: 499999500000
+<Go:Skynet> duration 241 ms.
+Result: 499999500000
+<Go:Skynet> duration 256 ms.
+Result: 499999500000
+<Go:Skynet> duration 233 ms.
+Result: 499999500000
+<Go:Skynet> duration 236 ms.
+Result: 499999500000
+<Go:Skynet> duration 256 ms.
+Result: 499999500000
+<Go:Skynet> duration 236 ms.
+Result: 499999500000
+<Go:Skynet> duration 249 ms.
+Result: 499999500000
+<Go:Skynet> duration 235 ms.
+Result: 499999500000
+<Go:Skynet> duration 237 ms.
+Result: 499999500000
+<Go:Skynet> duration 228 ms.
+Result: 499999500000
+<Go:Skynet> duration 228 ms.
+Result: 499999500000
+<Go:Skynet> duration 234 ms.
+Result: 499999500000
+<Go:Skynet> duration 228 ms.
+Result: 499999500000
+<Go:Skynet> duration 231 ms.
+Result: 499999500000
+<Go:Skynet> duration 241 ms.
+Result: 499999500000
+<Go:Skynet> duration 232 ms.

@@ -16,7 +16,7 @@ struct TimeInterval {
     }
     ~TimeInterval() {
         auto period = std::chrono::high_resolution_clock::now() - start;
-        printf("<%s> duration: %lfms\n", message.c_str(), 
+        printf("<%s> duration: %lf ms\n", message.c_str(), 
                     std::chrono::duration<double, std::milli>(period).count());
     }
 };

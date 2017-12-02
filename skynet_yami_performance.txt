@@ -1,0 +1,200 @@
+Result: 499999500000
+<Skynet> duration: 330.454077 ms
+Result: 499999500000
+<Skynet> duration: 253.618858 ms
+Result: 499999500000
+<Skynet> duration: 271.617723 ms
+Result: 499999500000
+<Skynet> duration: 290.648167 ms
+Result: 499999500000
+<Skynet> duration: 211.356505 ms
+Result: 499999500000
+<Skynet> duration: 301.120457 ms
+Result: 499999500000
+<Skynet> duration: 286.669667 ms
+Result: 499999500000
+<Skynet> duration: 251.101371 ms
+Result: 499999500000
+<Skynet> duration: 272.797287 ms
+Result: 499999500000
+<Skynet> duration: 289.557006 ms
+Result: 499999500000
+<Skynet> duration: 255.665694 ms
+Result: 499999500000
+<Skynet> duration: 319.648346 ms
+Result: 499999500000
+<Skynet> duration: 434.861817 ms
+Result: 499999500000
+<Skynet> duration: 265.989757 ms
+Result: 499999500000
+<Skynet> duration: 277.096547 ms
+Result: 499999500000
+<Skynet> duration: 224.008418 ms
+Result: 499999500000
+<Skynet> duration: 221.084784 ms
+Result: 499999500000
+<Skynet> duration: 253.613092 ms
+Result: 499999500000
+<Skynet> duration: 243.099163 ms
+Result: 499999500000
+<Skynet> duration: 247.933844 ms
+Result: 499999500000
+<Skynet> duration: 234.673473 ms
+Result: 499999500000
+<Skynet> duration: 236.051542 ms
+Result: 499999500000
+<Skynet> duration: 287.432722 ms
+Result: 499999500000
+<Skynet> duration: 304.920505 ms
+Result: 499999500000
+<Skynet> duration: 258.644657 ms
+Result: 499999500000
+<Skynet> duration: 320.161770 ms
+Result: 499999500000
+<Skynet> duration: 244.141237 ms
+Result: 499999500000
+<Skynet> duration: 231.997657 ms
+Result: 499999500000
+<Skynet> duration: 268.260594 ms
+Result: 499999500000
+<Skynet> duration: 310.033513 ms
+Result: 499999500000
+<Skynet> duration: 288.205602 ms
+Result: 499999500000
+<Skynet> duration: 248.841452 ms
+Result: 499999500000
+<Skynet> duration: 218.681380 ms
+Result: 499999500000
+<Skynet> duration: 271.019104 ms
+Result: 499999500000
+<Skynet> duration: 273.166789 ms
+Result: 499999500000
+<Skynet> duration: 277.158516 ms
+Result: 499999500000
+<Skynet> duration: 295.130613 ms
+Result: 499999500000
+<Skynet> duration: 294.618265 ms
+Result: 499999500000
+<Skynet> duration: 256.275247 ms
+Result: 499999500000
+<Skynet> duration: 267.870363 ms
+Result: 499999500000
+<Skynet> duration: 240.162264 ms
+Result: 499999500000
+<Skynet> duration: 203.566218 ms
+Result: 499999500000
+<Skynet> duration: 298.608188 ms
+Result: 499999500000
+<Skynet> duration: 268.769240 ms
+Result: 499999500000
+<Skynet> duration: 285.680428 ms
+Result: 499999500000
+<Skynet> duration: 254.994634 ms
+Result: 499999500000
+<Skynet> duration: 341.607586 ms
+Result: 499999500000
+<Skynet> duration: 278.270471 ms
+Result: 499999500000
+<Skynet> duration: 229.670242 ms
+Result: 499999500000
+<Skynet> duration: 311.717094 ms
+Result: 499999500000
+<Skynet> duration: 273.584360 ms
+Result: 499999500000
+<Skynet> duration: 265.226954 ms
+Result: 499999500000
+<Skynet> duration: 313.298733 ms
+Result: 499999500000
+<Skynet> duration: 256.253047 ms
+Result: 499999500000
+<Skynet> duration: 277.359438 ms
+Result: 499999500000
+<Skynet> duration: 220.112655 ms
+Result: 499999500000
+<Skynet> duration: 243.342929 ms
+Result: 499999500000
+<Skynet> duration: 214.675545 ms
+Result: 499999500000
+<Skynet> duration: 282.866357 ms
+Result: 499999500000
+<Skynet> duration: 222.822913 ms
+Result: 499999500000
+<Skynet> duration: 238.481994 ms
+Result: 499999500000
+<Skynet> duration: 278.734838 ms
+Result: 499999500000
+<Skynet> duration: 282.882500 ms
+Result: 499999500000
+<Skynet> duration: 287.819103 ms
+Result: 499999500000
+<Skynet> duration: 280.109851 ms
+Result: 499999500000
+<Skynet> duration: 239.474366 ms
+Result: 499999500000
+<Skynet> duration: 271.307788 ms
+Result: 499999500000
+<Skynet> duration: 272.130614 ms
+Result: 499999500000
+<Skynet> duration: 242.857264 ms
+Result: 499999500000
+<Skynet> duration: 237.705978 ms
+Result: 499999500000
+<Skynet> duration: 283.424850 ms
+Result: 499999500000
+<Skynet> duration: 269.084317 ms
+Result: 499999500000
+<Skynet> duration: 234.767395 ms
+Result: 499999500000
+<Skynet> duration: 250.523895 ms
+Result: 499999500000
+<Skynet> duration: 247.584803 ms
+Result: 499999500000
+<Skynet> duration: 267.286891 ms
+Result: 499999500000
+<Skynet> duration: 281.986335 ms
+Result: 499999500000
+<Skynet> duration: 245.302455 ms
+Result: 499999500000
+<Skynet> duration: 253.282037 ms
+Result: 499999500000
+<Skynet> duration: 265.368013 ms
+Result: 499999500000
+<Skynet> duration: 270.747034 ms
+Result: 499999500000
+<Skynet> duration: 227.592560 ms
+Result: 499999500000
+<Skynet> duration: 249.248899 ms
+Result: 499999500000
+<Skynet> duration: 257.148595 ms
+Result: 499999500000
+<Skynet> duration: 227.416760 ms
+Result: 499999500000
+<Skynet> duration: 285.684757 ms
+Result: 499999500000
+<Skynet> duration: 287.048076 ms
+Result: 499999500000
+<Skynet> duration: 307.557777 ms
+Result: 499999500000
+<Skynet> duration: 247.181681 ms
+Result: 499999500000
+<Skynet> duration: 244.739774 ms
+Result: 499999500000
+<Skynet> duration: 212.270142 ms
+Result: 499999500000
+<Skynet> duration: 213.017056 ms
+Result: 499999500000
+<Skynet> duration: 351.637675 ms
+Result: 499999500000
+<Skynet> duration: 269.249541 ms
+Result: 499999500000
+<Skynet> duration: 272.707986 ms
+Result: 499999500000
+<Skynet> duration: 239.909085 ms
+Result: 499999500000
+<Skynet> duration: 301.583640 ms
+Result: 499999500000
+<Skynet> duration: 248.050946 ms
+Result: 499999500000
+<Skynet> duration: 241.154437 ms
+Result: 499999500000
+<Skynet> duration: 242.533901 ms

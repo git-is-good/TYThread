@@ -27,5 +27,5 @@ func main() {
 	go skynet(c, 0, 1000000, 10)
 	result := <-c
 	took := time.Since(start)
-	fmt.Printf("Result: %d in %d ms.\n", result, took.Nanoseconds()/1e6)
+    fmt.Printf("Result: %d\n<Go:Skynet> duration %d ms.\n", result, took.Nanoseconds()/1e6)
 }
