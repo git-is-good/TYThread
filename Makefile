@@ -26,7 +26,7 @@ HEADERS :=					\
 	debug_local_begin.hh	\
 	debug_local_end.hh		\
 	util.hh					\
-	mpi_hooks.hh
+#	mpi_hooks.hh
 
 
 YAMITHREAD_LIB_OBJS :=		\
@@ -34,7 +34,7 @@ YAMITHREAD_LIB_OBJS :=		\
 	PerThreadMgr.o			\
 	Task.o					\
 	TaskGroup.o				\
-	mpi_hooks.o
+#	mpi_hooks.o
 
 OBJS := $(YAMITHREAD_LIB_OBJS) user_test.o GlobalMediator_test.o skynet_yami.o
 

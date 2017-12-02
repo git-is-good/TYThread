@@ -16,10 +16,6 @@ class TaskGroup : public NonCopyable {
 public:
     void wait();
     TaskGroup &registe(TaskPtr ptr);
-//    TaskGroup &registe(TaskPtr &&ptr) {
-//        registe(ptr);
-//        return *this;
-//    }
     void informDone(TaskPtr ptr);
     bool resumeIfNothingToWait(TaskPtr &ptr);
     

@@ -9,8 +9,8 @@
 //#define ENABLE_OBJECT_POOL
 
 struct Config : public Singleton {
-    int max_stack_size = 512 * 7;
-    int num_of_threads = 6;
+    int max_stack_size = 512 * 8;
+    int num_of_threads = 3;
 
     /* in microseconds */
     int max_wait_task_time = 1000;

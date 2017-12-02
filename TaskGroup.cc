@@ -53,11 +53,11 @@ TaskGroup::registe(TaskPtr ptr)
 void
 TaskGroup::informDone(TaskPtr ptr)
 {
+    std::lock_guard<Spinlock> _(mut_);
     TaskPtr nowCanRun = nullptr;
 
     if ( --blocking_count == 0 ) {
         DEBUG_PRINT(DEBUG_TaskGroup, "task %d informDone to TaskGroup %d...", ptr->debugId, debugId);
-        std::lock_guard<Spinlock> _(mut_);
         nowCanRun = std::move(blockedTask);
     }
 
