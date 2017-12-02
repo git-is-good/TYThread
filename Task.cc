@@ -162,6 +162,8 @@ Task::getStateName(int s)
     }
 }
 
+boost::context::fixedsize_stack Task::salloc(Config::Instance().max_stack_size);
+
 void
 Task::continuationIn()
 {
@@ -170,6 +172,7 @@ Task::continuationIn()
     if ( state == Task::Initial ) {
         state = Task::Runnable;
         task_continuation = boost::context::callcc(
+            std::allocator_arg, salloc,
             [this] (continuation_t &&cont) -> continuation_t {
                 saved_continuation = std::move(cont);
                 try {

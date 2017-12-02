@@ -95,6 +95,7 @@ private:
     Spinlock                mut_;
 
     static std::atomic<int> debugId_counter;
+    static boost::context::fixedsize_stack salloc;
 };
 
 using TaskPtr = DerivedRefPtr<Task>;
