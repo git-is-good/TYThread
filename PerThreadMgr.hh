@@ -37,6 +37,8 @@ public:
 
     TaskPtr &currentTask() { return currentTask__; }
 private:
+    void handle_after_continuationOut(TaskPtr &ptr);
+
     friend class GlobalMediator;
     std::unique_ptr<Skiplist<Task>> runnable_queue = std::make_unique<Skiplist<Task>>();
 

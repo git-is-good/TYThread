@@ -121,5 +121,5 @@ GlobalMediator::run()
     }
 }
 
-thread_local int GlobalMediator::thread_id;
+thread_local int GlobalMediator::thread_id = {-1};
 

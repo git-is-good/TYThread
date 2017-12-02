@@ -162,10 +162,7 @@ Task::continuationIn()
 {
     DEBUG_PRINT(DEBUG_Task, "Thread %d: Task %d continuationIn with state %s...",
             globalMediator.thread_id, debugId, getStateName(state));
-    if ( state == Task::Runnable ) {
-        MUST_TRUE(task_continuation, "task: %d", co_currentTask->debugId);
-        task_continuation = task_continuation.resume();
-    } else if ( state == Task::Initial ) {
+    if ( state == Task::Initial ) {
         state = Task::Runnable;
         task_continuation = boost::context::callcc(
             [this] (continuation_t &&cont) -> continuation_t {
@@ -179,6 +176,9 @@ Task::continuationIn()
                 }
                 return std::move(saved_continuation);
             });
+    } else {
+        MUST_TRUE(task_continuation, "task: %d", co_currentTask->debugId);
+        task_continuation = task_continuation.resume();
     }
 }
 

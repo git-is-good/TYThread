@@ -67,6 +67,7 @@ public:
     void continuationOut();
 
     int debugId;
+    int state = Initial;
 
     // memory management
     static void* operator new(std::size_t sz);
@@ -77,7 +78,6 @@ private:
     /* a pure task will not block, and can be scheduled in the current stack */
     bool                    isPure = false;
 
-    int state = Initial;
     bool isFini() const {
         return state == Task::Terminated;
     }

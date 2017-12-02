@@ -21,7 +21,8 @@ HEADERS :=					\
 	debug.hh				\
 	debug_local_begin.hh	\
 	debug_local_end.hh		\
-	util.hh				
+	util.hh					\
+	mpi_hooks.hh
 
 LIBS := -lboost_context
 
@@ -30,6 +31,7 @@ YAMITHREAD_LIB_OBJS :=		\
 	PerThreadMgr.o			\
 	Task.o					\
 	TaskGroup.o				\
+	mpi_hooks.o
 
 OBJS := $(YAMITHREAD_LIB_OBJS) user_test.o GlobalMediator_test.o
 

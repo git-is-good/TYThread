@@ -15,7 +15,7 @@
 #include "debug_local_begin.hh"
 
 /* for intrusive linked list */
-template<class Derived, bool UseRefPtr = true>
+template<class Derived>
 class Linkable : public NonCopyable {
 public:
     ~Linkable() = default;

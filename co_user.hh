@@ -4,9 +4,11 @@
 #include "Task.hh"
 #include "TaskGroup.hh"
 #include "GlobalMediator.hh"
+#include "mpi_hooks.hh"
 
 #include <functional>
 #include <memory>
+#include <utility>
 
 class TaskHandle {
     template<class Fn, class... Args>
@@ -50,7 +52,7 @@ go(Fn&& callback, Args&&... args)
     taskHandle.ptr__ = makeRefPtr<Task>(
             std::bind(std::forward<Fn>(callback), std::forward<Args>(args)...)); 
     globalMediator.addRunnable(taskHandle.ptr__);
-    return taskHandle;
+    return std::move(taskHandle);
 }
 
 template<class Fn, class... Args>
@@ -62,7 +64,7 @@ go_pure(Fn&& callback, Args&&... args)
             std::bind(std::forward<Fn>(callback), std::forward<Args>(args)...)); 
     taskHandle.ptr__->setPure();
     globalMediator.addRunnable(taskHandle.ptr__);
-    return taskHandle;
+    return std::move(taskHandle);
 }
 
 class CountDownLatch : public NonCopyable {
